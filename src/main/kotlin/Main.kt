@@ -2,13 +2,13 @@ fun main() {
 
     var rows = 4
     var cols = 4
-    val disabledRows = emptyArray<Int>()
-    val disabledCols = emptyArray<Int>()
-    val x = arrayOf(
+    val disabledRows = booleanArrayOf(true, true, true, true)
+    val disabledCols = booleanArrayOf(true, true, true, true)
+    var x = arrayOf(
         intArrayOf(800, 100, 900, 300),
         intArrayOf(400, 600, 200, 1200),
         intArrayOf(700, 500, 800, 900),
-        intArrayOf(400, 900, 23, 500)
+        intArrayOf(400, 900, 0, 500)
     )
     val base = arrayOf(
         intArrayOf(0, 0, 0, 0),
@@ -24,24 +24,27 @@ fun main() {
 
     while ((rows != 1) || (cols != 1)) {
         val findLeastElement = findMinElementFromMatrix(x)
-        val leastCostRow = findLeastElement[ROW_INDEX]
-        val leastCostCol = findLeastElement[COLUMN_INDEX]
-        var leastCost = findLeastElement[LEAST_ELEMENT_INDEX]
+        val leastCost = findLeastElement[0]
+        val leastCostRow = findLeastElement[1]
+        val leastCostCol = findLeastElement[2]
+        println("least element = $leastCost, indices $leastCostRow:$leastCostCol")
 
-        base[leastCostRow!!][leastCostCol!!] = if (a[leastCostRow] > b[leastCostCol]) {
+        base[leastCostRow][leastCostCol] = if (a[leastCostRow] > b[leastCostCol]) {
             b[leastCostCol]
         } else {
             a[leastCostRow]
         }
+        printMatrix(base)
+
         a[leastCostRow] -= base[leastCostRow][leastCostCol]
         b[leastCostCol] -= base[leastCostRow][leastCostCol]
         if (a[leastCostRow] == 0) {
-            disabledRows.plus(leastCostRow)
-            disableRow(x,leastCostRow, maxElement)
+            disabledRows[leastCostRow] = false
+            x = disableRow(x,leastCostRow, maxElement)
             rows--
         } else if (b[leastCostCol] == 0) {
-            disabledCols.plus(leastCostCol)
-            disableColumn(x,leastCostCol, maxElement)
+            disabledCols[leastCostCol] = false
+            x = disableColumn(x,leastCostCol, maxElement)
             cols--
         }
         iterations++
@@ -49,17 +52,35 @@ fun main() {
 
     when {
         rows == 1 -> {
-
+            for (i in base.indices) {
+                if (disabledRows[i]) {
+                    for (k in base.indices) {
+                        if (disabledCols[k]) {
+                            base[i][k] = b[k]
+                        }
+                    }
+                }
+            }
         }
         cols == 1 -> {
-
+            for (i in base.indices) {
+                if (disabledCols[i]) {
+                    for (k in base.indices) {
+                        if (disabledRows[k]) {
+                            base[k][i] = a[k]
+                        }
+                    }
+                }
+            }
         }
-
     }
 
+    printMatrix(base)
+    println("SOLVED")
 }
 
 fun disableColumn(matrix: Array<IntArray>, column: Int, maxElement: Int) : Array<IntArray> {
+    println("disabled column = $column")
     matrix.map {
         it[column] = maxElement
     }
@@ -67,15 +88,16 @@ fun disableColumn(matrix: Array<IntArray>, column: Int, maxElement: Int) : Array
 }
 
 fun disableRow(matrix: Array<IntArray>, disabledRow: Int, maxElement: Int) : Array<IntArray> {
-    val newMatrix = emptyArray<IntArray>()
+    println("disabled row = $disabledRow")
+    val newMatrix = mutableListOf<IntArray>()
     for (row in matrix.indices) {
         if (row != disabledRow) {
-            newMatrix[row] = matrix[row]
+            newMatrix.add(row, matrix[row])
         } else {
-            newMatrix[row] = intArrayOf(maxElement, maxElement, maxElement, maxElement)
+            newMatrix.add(row, intArrayOf(maxElement, maxElement, maxElement, maxElement))
         }
     }
-    return newMatrix
+    return newMatrix.toTypedArray()
 }
 
 fun findMaxElementFromMatrix(matrix: Array<IntArray>) : Int {
@@ -90,7 +112,7 @@ fun findMaxElementFromMatrix(matrix: Array<IntArray>) : Int {
     return max
 }
 
-fun findMinElementFromMatrix(matrix: Array<IntArray>) : Map<String, Int> {
+fun findMinElementFromMatrix(matrix: Array<IntArray>) : IntArray {
     var leastCostRow = 0
     var leastCostCol = 0
     var leastCost = matrix[leastCostRow][leastCostCol]
@@ -103,14 +125,13 @@ fun findMinElementFromMatrix(matrix: Array<IntArray>) : Map<String, Int> {
             }
         }
     }
-    return mapOf(
-        Pair(ROW_INDEX,leastCostRow),
-        Pair(COLUMN_INDEX,leastCostCol),
-        Pair(LEAST_ELEMENT_INDEX,leastCost)
-    )
+    return intArrayOf(leastCost, leastCostRow, leastCostCol)
 }
 
-    private const val ROW_INDEX = "row_index"
-    private const val COLUMN_INDEX = "column_index"
-    private const val LEAST_ELEMENT_INDEX = "least_element"
+fun printMatrix(matrix: Array<IntArray>) {
+    matrix.map {
+        println("[${it[0]}, ${it[1]}, ${it[2]}, ${it[3]}]")
+    }
+}
+
 
