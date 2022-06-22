@@ -9,6 +9,7 @@ fun main() {
     val disabledCols = BooleanArray(cols) {true}
 
     var x = insertMatrix(rows, cols)
+
 //    var x = arrayOf(
 //        intArrayOf(800, 100, 900, 300),
 //        intArrayOf(400, 600, 200, 1200),
@@ -16,7 +17,7 @@ fun main() {
 //        intArrayOf(400, 900, 0, 500)
 //    )
 
-    val base = Array<IntArray>(rows){IntArray(cols){BASE_VALUE} }
+    val base = Array(rows){IntArray(cols){BASE_VALUE} }
 
     val a = arrayOf(110, 190, 90, 70)
     val b = arrayOf(100, 60, 170, 130)
