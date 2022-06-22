@@ -95,7 +95,7 @@ fun disableRow(matrix: Array<IntArray>, disabledRow: Int, maxElement: Int) : Arr
         if (row != disabledRow) {
             newMatrix.add(row, matrix[row])
         } else {
-            newMatrix.add(row, intArrayOf(maxElement, maxElement, maxElement, maxElement))
+            newMatrix.add(row, IntArray(matrix[row].size){maxElement})
         }
     }
     return newMatrix.toTypedArray()
