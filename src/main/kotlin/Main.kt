@@ -1,9 +1,11 @@
 fun main() {
 
-    var rows = 4
-    var cols = 4
-    val disabledRows = booleanArrayOf(true, true, true, true)
-    val disabledCols = booleanArrayOf(true, true, true, true)
+    val matrixSize = insertMatrixSize()
+    var rows = matrixSize[0]
+    var cols = matrixSize[1]
+
+    val disabledRows = BooleanArray(rows) {true}
+    val disabledCols = BooleanArray(cols) {true}
     var x = arrayOf(
         intArrayOf(800, 100, 900, 300),
         intArrayOf(400, 600, 200, 1200),
@@ -135,4 +137,27 @@ fun printMatrix(matrix: Array<IntArray>) {
     }
 }
 
+fun insertMatrixSize() : IntArray {
+    println("Insert rows count:")
+    var insertRows = readLine()
+    println("Insert cols count:")
+    var insertCols = readLine()
+    while (!(validateInsert(insertRows) && validateInsert(insertCols))) {
+        println("Data not valid, insert rows count:")
+        insertRows = readLine()
+        println("Insert cols count:")
+        insertCols = readLine()
+    }
+    return intArrayOf(insertRows!!.toInt(), insertCols!!.toInt())
+}
+
+fun validateInsert(insert : String?) : Boolean {
+    return if (insert == null) {
+        false
+    } else {
+        if (insert.toIntOrNull() is Int) {
+            insert.toInt() >= 0
+        } else false
+    }
+}
 
