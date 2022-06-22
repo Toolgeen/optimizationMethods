@@ -1,23 +1,23 @@
+private const val BASE_VALUE = 0
+
 fun main() {
 
     val matrixSize = insertMatrixSize()
     var rows = matrixSize[0]
     var cols = matrixSize[1]
-
     val disabledRows = BooleanArray(rows) {true}
     val disabledCols = BooleanArray(cols) {true}
-    var x = arrayOf(
-        intArrayOf(800, 100, 900, 300),
-        intArrayOf(400, 600, 200, 1200),
-        intArrayOf(700, 500, 800, 900),
-        intArrayOf(400, 900, 0, 500)
-    )
-    val base = arrayOf(
-        intArrayOf(0, 0, 0, 0),
-        intArrayOf(0, 0, 0, 0),
-        intArrayOf(0, 0, 0, 0),
-        intArrayOf(0, 0, 0, 0)
-    )
+
+    var x = insertMatrix(rows, cols)
+//    var x = arrayOf(
+//        intArrayOf(800, 100, 900, 300),
+//        intArrayOf(400, 600, 200, 1200),
+//        intArrayOf(700, 500, 800, 900),
+//        intArrayOf(400, 900, 0, 500)
+//    )
+
+    val base = Array<IntArray>(rows){IntArray(cols){BASE_VALUE} }
+
     val a = arrayOf(110, 190, 90, 70)
     val b = arrayOf(100, 60, 170, 130)
     var iterations = 0
@@ -161,3 +161,20 @@ fun validateInsert(insert : String?) : Boolean {
     }
 }
 
+fun insertMatrix(rows: Int, cols: Int) : Array<IntArray> {
+    val matrix = mutableListOf<IntArray>()
+    for (i in 0 until rows) {
+        println("Insert #${i+1} row:")
+        val row = mutableListOf<Int>()
+        for(k in 0 until cols) {
+            var value = readLine()
+            while (!validateInsert(value)) {
+                println("value row ${i+1}, column ${k+1} not valid, try again")
+                value = readLine()
+            }
+            row.add(k,value!!.toInt())
+        }
+        matrix.add(row.toIntArray())
+    }
+    return matrix.toTypedArray()
+}
