@@ -1,21 +1,24 @@
+private const val BASE_VALUE = 0
+
 fun main() {
 
-    var rows = 4
-    var cols = 4
-    val disabledRows = booleanArrayOf(true, true, true, true)
-    val disabledCols = booleanArrayOf(true, true, true, true)
-    var x = arrayOf(
-        intArrayOf(800, 100, 900, 300),
-        intArrayOf(400, 600, 200, 1200),
-        intArrayOf(700, 500, 800, 900),
-        intArrayOf(400, 900, 0, 500)
-    )
-    val base = arrayOf(
-        intArrayOf(0, 0, 0, 0),
-        intArrayOf(0, 0, 0, 0),
-        intArrayOf(0, 0, 0, 0),
-        intArrayOf(0, 0, 0, 0)
-    )
+    val matrixSize = insertMatrixSize()
+    var rows = matrixSize[0]
+    var cols = matrixSize[1]
+    val disabledRows = BooleanArray(rows) {true}
+    val disabledCols = BooleanArray(cols) {true}
+
+    var x = insertMatrix(rows, cols)
+
+//    var x = arrayOf(
+//        intArrayOf(800, 100, 900, 300),
+//        intArrayOf(400, 600, 200, 1200),
+//        intArrayOf(700, 500, 800, 900),
+//        intArrayOf(400, 900, 0, 500)
+//    )
+
+    val base = Array(rows){IntArray(cols){BASE_VALUE} }
+
     val a = arrayOf(110, 190, 90, 70)
     val b = arrayOf(100, 60, 170, 130)
     var iterations = 0
@@ -76,6 +79,7 @@ fun main() {
     }
 
     printMatrix(base)
+    println(iterations)
     println("SOLVED")
 }
 
@@ -94,7 +98,7 @@ fun disableRow(matrix: Array<IntArray>, disabledRow: Int, maxElement: Int) : Arr
         if (row != disabledRow) {
             newMatrix.add(row, matrix[row])
         } else {
-            newMatrix.add(row, intArrayOf(maxElement, maxElement, maxElement, maxElement))
+            newMatrix.add(row, IntArray(matrix[row].size){maxElement})
         }
     }
     return newMatrix.toTypedArray()
@@ -130,8 +134,48 @@ fun findMinElementFromMatrix(matrix: Array<IntArray>) : IntArray {
 
 fun printMatrix(matrix: Array<IntArray>) {
     matrix.map {
-        println("[${it[0]}, ${it[1]}, ${it[2]}, ${it[3]}]")
+        println("[${it.joinToString(", ")}]")
     }
 }
 
+fun insertMatrixSize() : IntArray {
+    println("Insert rows count:")
+    var insertRows = readLine()
+    println("Insert cols count:")
+    var insertCols = readLine()
+    while (!(validateInsert(insertRows) && validateInsert(insertCols))) {
+        println("Data not valid, insert rows count:")
+        insertRows = readLine()
+        println("Insert cols count:")
+        insertCols = readLine()
+    }
+    return intArrayOf(insertRows!!.toInt(), insertCols!!.toInt())
+}
 
+fun validateInsert(insert : String?) : Boolean {
+    return if (insert == null) {
+        false
+    } else {
+        if (insert.toIntOrNull() is Int) {
+            insert.toInt() >= 0
+        } else false
+    }
+}
+
+fun insertMatrix(rows: Int, cols: Int) : Array<IntArray> {
+    val matrix = mutableListOf<IntArray>()
+    for (i in 0 until rows) {
+        println("Insert #${i+1} row:")
+        val row = mutableListOf<Int>()
+        for(k in 0 until cols) {
+            var value = readLine()
+            while (!validateInsert(value)) {
+                println("value row ${i+1}, column ${k+1} not valid, try again")
+                value = readLine()
+            }
+            row.add(k,value!!.toInt())
+        }
+        matrix.add(row.toIntArray())
+    }
+    return matrix.toTypedArray()
+}
