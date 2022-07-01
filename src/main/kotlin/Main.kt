@@ -1,13 +1,17 @@
 private const val VALUE_ZERO = 0.0
 private const val VALUE_ONE = 1.0
-private var rows: Int = 0
-private var cols: Int = 0
+private var insertRows: Int = 4 //TODO: rewrite to 0
+private var insertCols: Int = 4 //TODO: rewrite to 0
 
 private fun main() {
 
-    val matrixSize = insertMatrixSize()
-    rows = matrixSize[0]
-    cols = matrixSize[1]
+//    val matrixSize = insertMatrixSize()
+//    rows = matrixSize[0]
+//    cols = matrixSize[1]
+
+//    var x = insertMatrix(rows, cols)
+//    val a = insertAMatrix(rows)
+//    val b = insertBMatrix(cols)
 
     val x = arrayOf(
         doubleArrayOf(800.0, 100.0, 900.0, 300.0),
@@ -18,11 +22,6 @@ private fun main() {
 
     val a = arrayOf(110.0, 190.0, 90.0, 70.0).toDoubleArray()
     val b = arrayOf(100.0, 60.0, 170.0, 130.0).toDoubleArray()
-
-//
-//    var x = insertMatrix(rows, cols)
-//    val a = insertAMatrix(rows)
-//    val b = insertBMatrix(cols)
 
     val basis = leastElementMethod(x, a, b)
     if (isSimplexMethodNeeded()) {
@@ -36,10 +35,44 @@ private fun simplexMethod(basis: Array<DoubleArray>, a: DoubleArray, b: DoubleAr
 
     val matrixOfRestrictions = createMatrixOfRestrictions(a, b)
     printMatrix(matrixOfRestrictions)
+    createSimplexTable(matrixOfRestrictions, basis)
 
 }
 
-private fun createMatrixOfRestrictions(a: DoubleArray, b: DoubleArray) : Array<DoubleArray> {
+private fun createSimplexTable(matrixOfRestrictions: Array<DoubleArray>, basis: Array<DoubleArray>) {
+    val simplexTable = mutableListOf<DoubleArray>()
+    val basisArguments = mutableListOf<Int>()
+    val nonBasisArguments = mutableListOf<Int>()
+    var argumentIndex = 0
+    for (i in 0 until insertRows) {
+        for (k in 0 until insertCols) {
+            if (basis[i][k] != 0.0) {
+                basisArguments.add(argumentIndex)
+                argumentIndex++
+            } else {
+                nonBasisArguments.add(argumentIndex)
+                argumentIndex++
+            }
+        }
+    }
+    println("базисные переменные:")
+    println(basisArguments.joinToString(", "))
+    println("небазисные переменные:")
+    println(nonBasisArguments.joinToString(", "))
+    println(argumentIndex)
+
+    for (row in basisArguments) {
+        val simplexTableRow = mutableListOf<Double>()
+        for (col in nonBasisArguments) {
+            simplexTableRow.add(matrixOfRestrictions[row][col])
+        }
+        simplexTable.add(simplexTableRow.toDoubleArray())
+    }
+    printMatrix(simplexTable.toTypedArray())
+}
+//TODO: NOT FUCKING IDEA WHAT TO DO
+
+private fun createMatrixOfRestrictions(a: DoubleArray, b: DoubleArray): Array<DoubleArray> {
     val matrixOfRestrictions = mutableListOf<DoubleArray>()
     var counter = 1
     for (i in 0 until (a.size + b.size)) {
@@ -84,8 +117,14 @@ private fun isSimplexMethodNeeded(): Boolean {
     }
 }
 
-private fun leastElementMethod(matrix: Array<DoubleArray>, aMatrix: DoubleArray, bMatrix: DoubleArray): Array<DoubleArray> {
+private fun leastElementMethod(
+    matrix: Array<DoubleArray>,
+    aMatrix: DoubleArray,
+    bMatrix: DoubleArray
+): Array<DoubleArray> {
 
+    var rows = insertRows
+    var cols = insertCols
     val a = aMatrix.clone()
     val b = bMatrix.clone()
     var x = matrix
