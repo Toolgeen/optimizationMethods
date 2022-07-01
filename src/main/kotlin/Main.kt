@@ -9,30 +9,65 @@ private fun main() {
     rows = matrixSize[0]
     cols = matrixSize[1]
 
-    var x = insertMatrix(rows, cols)
-    val a = insertAMatrix(rows)
-    val b = insertBMatrix(cols)
+    val x = arrayOf(
+        doubleArrayOf(800.0, 100.0, 900.0, 300.0),
+        doubleArrayOf(400.0, 600.0, 200.0, 1200.0),
+        doubleArrayOf(700.0, 500.0, 800.0, 900.0),
+        doubleArrayOf(400.0, 900.0, 0.0, 500.0)
+    )
 
-    val basis = leastElementMethod(x, b, a)
+    val a = arrayOf(110.0, 190.0, 90.0, 70.0).toDoubleArray()
+    val b = arrayOf(100.0, 60.0, 170.0, 130.0).toDoubleArray()
+
+//
+//    var x = insertMatrix(rows, cols)
+//    val a = insertAMatrix(rows)
+//    val b = insertBMatrix(cols)
+
+    val basis = leastElementMethod(x, a, b)
     if (isSimplexMethodNeeded()) {
-        simplexMethod()
+        simplexMethod(basis, a, b)
     }
 
-//        тестовый вариант
-//     var x = arrayOf(
-//        intArrayOf(800, 100, 900, 300),
-//        intArrayOf(400, 600, 200, 1200),
-//        intArrayOf(700, 500, 800, 900),
-//        intArrayOf(400, 900, 0, 500)
-//    )
-
-//    val a = arrayOf(110, 190, 90, 70)
-//    val b = arrayOf(100, 60, 170, 130)
 
 }
 
-private fun simplexMethod() {
+private fun simplexMethod(basis: Array<DoubleArray>, a: DoubleArray, b: DoubleArray) {
 
+    val matrixOfRestrictions = createMatrixOfRestrictions(a, b)
+    printMatrix(matrixOfRestrictions)
+
+}
+
+private fun createMatrixOfRestrictions(a: DoubleArray, b: DoubleArray) : Array<DoubleArray> {
+    val matrixOfRestrictions = mutableListOf<DoubleArray>()
+    var counter = 1
+    for (i in 0 until (a.size + b.size)) {
+        if (i < b.size) {
+            matrixOfRestrictions.add(
+                Array(a.size * b.size) {
+                    if ((it - i) % b.size == 0) {
+                        VALUE_ONE
+                    } else {
+                        VALUE_ZERO
+                    }
+                }.toDoubleArray().plus(b[i])
+            )
+        } else {
+            matrixOfRestrictions.add(
+                Array(a.size * b.size) {
+                    if (it + 1 <= counter * b.size && it + 1 > (i - b.size) * b.size) {
+                        VALUE_ONE
+                    } else {
+                        VALUE_ZERO
+                    }
+
+                }.toDoubleArray().plus(a[i - b.size])
+            )
+            counter++
+        }
+    }
+    return matrixOfRestrictions.toTypedArray()
 }
 
 private fun isSimplexMethodNeeded(): Boolean {
@@ -49,8 +84,10 @@ private fun isSimplexMethodNeeded(): Boolean {
     }
 }
 
-private fun leastElementMethod(matrix: Array<DoubleArray>, b: DoubleArray, a: DoubleArray): Array<DoubleArray> {
+private fun leastElementMethod(matrix: Array<DoubleArray>, aMatrix: DoubleArray, bMatrix: DoubleArray): Array<DoubleArray> {
 
+    val a = aMatrix.clone()
+    val b = bMatrix.clone()
     var x = matrix
     val disabledRows = BooleanArray(rows) { true }
     val disabledCols = BooleanArray(cols) { true }
