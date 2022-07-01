@@ -1,42 +1,25 @@
 private const val VALUE_ZERO = 0.0
 private const val VALUE_ONE = 1.0
+private var rows: Int = 0
+private var cols: Int = 0
 
 private fun main() {
 
-    leastElementMethod()
-    isSimplexMethodNeeded()
-
-}
-
-
-
-private fun isSimplexMethodNeeded(): Boolean {
-    println("Нужно ли продолжить решение симплекс-методом?")
-    println("Введите ${VALUE_ZERO.toInt()}, если нет, и ${VALUE_ONE.toInt()}, если да.")
-    var result = readLine()
-    while (!validateInsert(result)) {
-        println("Неизвестный вариант, пожалуйста, введите ${VALUE_ZERO.toInt()}, " +
-                "если нет, и ${VALUE_ONE.toInt()}, если да.")
-        result = readLine()
-    }
-    return when (result?.toInt()) {
-        VALUE_ONE.toInt() -> true
-        else -> false
-    }
-}
-
-private fun leastElementMethod() {
     val matrixSize = insertMatrixSize()
-    var rows = matrixSize[0]
-    var cols = matrixSize[1]
-    val disabledRows = BooleanArray(rows) { true }
-    val disabledCols = BooleanArray(cols) { true }
+    rows = matrixSize[0]
+    cols = matrixSize[1]
 
     var x = insertMatrix(rows, cols)
     val a = insertAMatrix(rows)
     val b = insertBMatrix(cols)
 
-//    var x = arrayOf(
+    val basis = leastElementMethod(x, b, a)
+    if (isSimplexMethodNeeded()) {
+        simplexMethod()
+    }
+
+//        тестовый вариант
+//     var x = arrayOf(
 //        intArrayOf(800, 100, 900, 300),
 //        intArrayOf(400, 600, 200, 1200),
 //        intArrayOf(700, 500, 800, 900),
@@ -46,6 +29,31 @@ private fun leastElementMethod() {
 //    val a = arrayOf(110, 190, 90, 70)
 //    val b = arrayOf(100, 60, 170, 130)
 
+}
+
+private fun simplexMethod() {
+
+}
+
+private fun isSimplexMethodNeeded(): Boolean {
+    println("Нужно ли продолжить решение симплекс-методом?")
+    println("Введите ${VALUE_ONE.toInt()}, если да, и любое другое число, если нет.")
+    var result = readLine()
+    while (!(validateInsert(result))) {
+        println("Неизвестный вариант, пожалуйста, введите ${VALUE_ONE.toInt()}, если да, и любое другое число, если нет.")
+        result = readLine()
+    }
+    return when (result?.toInt()) {
+        VALUE_ONE.toInt() -> true
+        else -> false
+    }
+}
+
+private fun leastElementMethod(matrix: Array<DoubleArray>, b: DoubleArray, a: DoubleArray): Array<DoubleArray> {
+
+    var x = matrix
+    val disabledRows = BooleanArray(rows) { true }
+    val disabledCols = BooleanArray(cols) { true }
     val base = Array(rows) { DoubleArray(cols) { VALUE_ZERO } }
 
 
@@ -107,8 +115,9 @@ private fun leastElementMethod() {
     }
 
     printMatrix(base)
-    println(iterations)
+    println("Решено за $iterations итераций.")
     println("ПОИСК БАЗИСА МЕТОДОМ НАИМЕНЬШЕЙ СТОИМОСТИ ЗАКОНЧЕН")
+    return base
 }
 
 private fun disableColumn(matrix: Array<DoubleArray>, column: Int, maxElement: Double): Array<DoubleArray> {
