@@ -38,17 +38,9 @@ private fun main() {
 private fun simplexMethod(basis: Array<DoubleArray>, a: DoubleArray, b: DoubleArray, matrixC: Array<DoubleArray>) {
 
     val matrixOfRestrictions = createMatrixOfRestrictions(a, b)
-    println("Матрица ограничений:")
+    println("Система ограничений:")
     printMatrix(matrixOfRestrictions)
-    createSimplexTable(matrixOfRestrictions, basis, matrixC)
 
-}
-
-private fun createSimplexTable(
-    matrixOfRestrictions: Array<DoubleArray>,
-    basis: Array<DoubleArray>,
-    matrixC: Array<DoubleArray>
-) {
     val simplexTable = mutableListOf<DoubleArray>()
     val currentCornerPoint = mutableListOf<Double>()
     val vectorC = mutableListOf<Double>()
@@ -92,7 +84,7 @@ private fun createSimplexTable(
     println(basisArguments.joinToString(", "))
     println("Индексы небазисных переменных:")
     println(nonBasisArguments.joinToString(", "))
-    println("Текущая угловая точка:")
+    println("Текущая угловая точка (начальный базис):")
     println(currentCornerPoint.joinToString(", "))
     println("Вектор коэффициентов при переменных в целевой функции:")
     println(vectorC.joinToString(", "))
@@ -101,13 +93,32 @@ private fun createSimplexTable(
     println("Коэффициенты целевой функции, выраженной через свободные переменные:")
     println(coefficientsP.joinToString(", "))
 
-    when (checkCoefficientsP(coefficientsP,matrixOfRestrictions)) {
-        CoefficientPCheck.NO_SOLVES -> println("нет решений")
-        CoefficientPCheck.SOLVED -> println("решено")
-        CoefficientPCheck.CONTINUE -> println("продолжаем решение")
-    }
+//    when (checkCoefficientsP(coefficientsP,matrixOfRestrictions)) {
+//        CoefficientPCheck.NO_SOLVES -> println("нет решений")
+//        CoefficientPCheck.SOLVED -> println("решено")
+//        CoefficientPCheck.CONTINUE -> println("продолжаем решение")
+//    }
+
+//    val iterationOfSimplexTable = 1
+//    while (checkCoefficientsP(coefficientsP,matrixOfRestrictions) == CoefficientPCheck.CONTINUE) {
+//        println("Соблюдено условие В, продолжаем решение:")
+//
+//        var firstRow = mutableListOf<String>()
+//        firstRow.add("СТ-$iterationOfSimplexTable")
+//        for (i in nonBasisArguments) {
+//            firstRow.add("X${i}")
+//        }
+//        firstRow.add("b")
+//        for (i in basisArguments) {
+//
+//        }
+//    }
+
+
 
 }
+
+
 
 private fun checkCoefficientsP(
     coefficientsP: MutableList<Double>,
