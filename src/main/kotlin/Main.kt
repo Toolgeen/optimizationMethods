@@ -25,52 +25,59 @@ private fun main() {
 
     val basis = leastElementMethod(x, a, b)
     if (isSimplexMethodNeeded()) {
-        simplexMethod(basis, a, b)
+        simplexMethod(basis, a, b, x)
     }
 
 
 }
 
-private fun simplexMethod(basis: Array<DoubleArray>, a: DoubleArray, b: DoubleArray) {
+private fun simplexMethod(basis: Array<DoubleArray>, a: DoubleArray, b: DoubleArray, matrixC: Array<DoubleArray>) {
 
     val matrixOfRestrictions = createMatrixOfRestrictions(a, b)
     printMatrix(matrixOfRestrictions)
-    createSimplexTable(matrixOfRestrictions, basis)
+    createSimplexTable(matrixOfRestrictions, basis, matrixC)
 
 }
 
-private fun createSimplexTable(matrixOfRestrictions: Array<DoubleArray>, basis: Array<DoubleArray>) {
+private fun createSimplexTable(
+    matrixOfRestrictions: Array<DoubleArray>,
+    basis: Array<DoubleArray>,
+    matrixC: Array<DoubleArray>
+) {
     val simplexTable = mutableListOf<DoubleArray>()
+    val currentCornerPoint = mutableListOf<Double>()
+    val vectorC = mutableListOf<Double>()
     val basisArguments = mutableListOf<Int>()
     val nonBasisArguments = mutableListOf<Int>()
-    var argumentIndex = 0
-    for (i in 0 until insertRows) {
-        for (k in 0 until insertCols) {
-            if (basis[i][k] != 0.0) {
-                basisArguments.add(argumentIndex)
-                argumentIndex++
-            } else {
-                nonBasisArguments.add(argumentIndex)
-                argumentIndex++
-            }
-        }
-    }
-    println("базисные переменные:")
-    println(basisArguments.joinToString(", "))
-    println("небазисные переменные:")
-    println(nonBasisArguments.joinToString(", "))
-    println(argumentIndex)
+    val coefficientsP = mutableListOf<Double>()
+    var p0 = 0.0
+    var index = 0
 
-    for (row in basisArguments) {
-        val simplexTableRow = mutableListOf<Double>()
-        for (col in nonBasisArguments) {
-            simplexTableRow.add(matrixOfRestrictions[row][col])
+    //заполнение векторов текущей угловой точки и коэффициентов при переменных в целевой функции
+    for (i in 0 until insertCols) {
+        for (k in 0 until insertRows) {
+            currentCornerPoint.add(basis[i][k])
+            vectorC.add(matrixC[i][k])
+            p0 += basis[i][k] * matrixC[i][k]
+            if (basis[i][k] == 0.0) {
+                nonBasisArguments.add(index)
+            } else {
+                basisArguments.add(index)
+            }
+            index++
         }
-        simplexTable.add(simplexTableRow.toDoubleArray())
     }
-    printMatrix(simplexTable.toTypedArray())
+
+    println("Индексы базисных переменных:")
+    println(basisArguments.joinToString(", "))
+    println("Индексы небазисных переменных:")
+    println(nonBasisArguments.joinToString(", "))
+    println("Текущая угловая точка:")
+    println(currentCornerPoint.joinToString(", "))
+    println("Вектор коэффициентов при переменных в целевой функции:")
+    println(vectorC.joinToString(", "))
+
 }
-//TODO: NOT FUCKING IDEA WHAT TO DO
 
 private fun createMatrixOfRestrictions(a: DoubleArray, b: DoubleArray): Array<DoubleArray> {
     val matrixOfRestrictions = mutableListOf<DoubleArray>()
