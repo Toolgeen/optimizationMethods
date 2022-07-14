@@ -3,6 +3,10 @@ private const val VALUE_ONE = 1.0
 private var insertRows: Int = 4 //TODO: rewrite to 0
 private var insertCols: Int = 4 //TODO: rewrite to 0
 
+enum class CoefficientPCheck {
+    SOLVED, NO_SOLVES, CONTINUE
+}
+
 private fun main() {
 
 //    val matrixSize = insertMatrixSize()
@@ -34,6 +38,7 @@ private fun main() {
 private fun simplexMethod(basis: Array<DoubleArray>, a: DoubleArray, b: DoubleArray, matrixC: Array<DoubleArray>) {
 
     val matrixOfRestrictions = createMatrixOfRestrictions(a, b)
+    println("Матрица ограничений:")
     printMatrix(matrixOfRestrictions)
     createSimplexTable(matrixOfRestrictions, basis, matrixC)
 
@@ -68,6 +73,21 @@ private fun createSimplexTable(
         }
     }
 
+    for (i in vectorC.indices) {
+        p0 += vectorC[i] * currentCornerPoint[i]
+    }
+    for (i in currentCornerPoint.indices) {
+        if (currentCornerPoint[i] == 0.0) {
+            coefficientsP.add(0.0)
+        } else {
+            var sum = 0.0
+            for (k in matrixOfRestrictions.indices) {
+                sum += vectorC[i] * matrixOfRestrictions[k][i]
+            }
+            coefficientsP.add(vectorC[i] - sum)
+        }
+
+    }
     println("Индексы базисных переменных:")
     println(basisArguments.joinToString(", "))
     println("Индексы небазисных переменных:")
@@ -76,8 +96,46 @@ private fun createSimplexTable(
     println(currentCornerPoint.joinToString(", "))
     println("Вектор коэффициентов при переменных в целевой функции:")
     println(vectorC.joinToString(", "))
+    println("Коэффициент целевой функции p0, выраженной через свободные переменные:")
+    println(p0)
+    println("Коэффициенты целевой функции, выраженной через свободные переменные:")
+    println(coefficientsP.joinToString(", "))
+
+    when (checkCoefficientsP(coefficientsP,matrixOfRestrictions)) {
+        CoefficientPCheck.NO_SOLVES -> println("нет решений")
+        CoefficientPCheck.SOLVED -> println("решено")
+        CoefficientPCheck.CONTINUE -> println("продолжаем решение")
+    }
 
 }
+
+private fun checkCoefficientsP(
+    coefficientsP: MutableList<Double>,
+    matrixOfRestrictions: Array<DoubleArray>
+) : CoefficientPCheck {
+    // шаг 3, проверка коэффициентов целевой функции
+    var conditionA = true
+    var conditionB = true
+    var conditionC = true
+    for (i in coefficientsP) {
+        if (i < 0) {
+            for (k in matrixOfRestrictions.indices) {
+                var isColNegativeOrZero = true
+                isColNegativeOrZero = isColNegativeOrZero && (matrixOfRestrictions[k][coefficientsP.indexOf(i)] <= 0)
+                conditionB = conditionB && isColNegativeOrZero
+            }
+        }
+        conditionA = conditionA && (i >= 0)
+    }
+    if (conditionA) {
+        return CoefficientPCheck.SOLVED
+    }
+    if (conditionB) {
+        return CoefficientPCheck.NO_SOLVES
+    }
+    return CoefficientPCheck.CONTINUE
+}
+
 
 private fun createMatrixOfRestrictions(a: DoubleArray, b: DoubleArray): Array<DoubleArray> {
     val matrixOfRestrictions = mutableListOf<DoubleArray>()
