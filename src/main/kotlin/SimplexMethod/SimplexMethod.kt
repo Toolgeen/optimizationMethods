@@ -1,5 +1,6 @@
 package SimplexMethod
 
+import CoefficientPCheck
 import Constants.VALUE_ONE
 import Constants.VALUE_ZERO
 import Input.Task
@@ -117,5 +118,32 @@ object SimplexMethod {
 			}
 		}
 		return matrixOfRestrictions
+	}
+
+	private fun checkCoefficientsP(
+		coefficientsP: MutableList<Double>,
+		matrixOfRestrictions: Array<DoubleArray>
+	) : CoefficientPCheck {
+		// шаг 3, проверка коэффициентов целевой функции
+		var conditionA = true
+		var conditionB = true
+		var conditionC = true
+		for (i in coefficientsP) {
+			if (i < 0) {
+				for (k in matrixOfRestrictions.indices) {
+					var isColNegativeOrZero = true
+					isColNegativeOrZero = isColNegativeOrZero && (matrixOfRestrictions[k][coefficientsP.indexOf(i)] <= 0)
+					conditionB = conditionB && isColNegativeOrZero
+				}
+			}
+			conditionA = conditionA && (i >= 0)
+		}
+		if (conditionA) {
+			return CoefficientPCheck.SOLVED
+		}
+		if (conditionB) {
+			return CoefficientPCheck.NO_SOLVES
+		}
+		return CoefficientPCheck.CONTINUE
 	}
 }

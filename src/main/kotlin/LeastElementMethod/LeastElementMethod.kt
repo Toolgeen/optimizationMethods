@@ -16,7 +16,7 @@ object LeastElementMethod {
 		var cols = task.cols
 		val a = task.a.toMutableList()
 		val b = task.b.toMutableList()
-		val x = task.matrix
+		var x = task.matrix
 		val disabledRows = MutableList(rows) { true }
 		val disabledCols = MutableList(cols) { true }
 		val base = MutableList(rows) { MutableList(cols) { VALUE_ZERO } }
@@ -41,11 +41,11 @@ object LeastElementMethod {
 			b[leastElement.col] -= base[leastElement.row][leastElement.col]
 			if (a[leastElement.row] == VALUE_ZERO) {
 				disabledRows[leastElement.row] = false
-				x.disableRow(leastElement.row, maxElement)
+				x = x.disableRow(leastElement.row, maxElement)
 				rows--
 			} else if (b[leastElement.col] == VALUE_ZERO) {
 				disabledCols[leastElement.col] = false
-				x.disableColumn(leastElement.col, maxElement)
+				x = x.disableColumn(leastElement.col, maxElement)
 				cols--
 			}
 			iterations++
