@@ -1,10 +1,9 @@
 package models
 
 import Constants.VALUE_ZERO
-import printMatrix
 
-class Matrix(
-	private val matrix: MutableList<MutableList<Double>>
+data class Matrix(
+	val matrix: MutableList<MutableList<Double>>
 ) {
 	fun setValue(value: Double, row: Int, col: Int) {
 		matrix[row][col] = value
@@ -17,7 +16,9 @@ class Matrix(
 		cols: Int
 	) : this(MutableList(rows) { MutableList(cols) { VALUE_ZERO } })
 
-	fun print() = matrix.printMatrix()
+	fun print() = matrix.map {
+		println("[${it.joinToString(", ")}]")
+	}
 
 	val rowSize = matrix.size
 	val colSize = matrix[0].size

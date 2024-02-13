@@ -5,7 +5,6 @@ import Constants.VALUE_ONE
 import Constants.VALUE_ZERO
 import Input.Task
 import models.Matrix
-import printMatrix
 
 object SimplexMethod {
 
@@ -13,12 +12,13 @@ object SimplexMethod {
 
 		val initialSimplexTable = createInitialSimplexTable(task)
 		println("Стандартная форма ЗЛП для решения симплекс-методом:")
-		initialSimplexTable.printMatrix()
+		initialSimplexTable.print()
 
 		val currentCornerPoint = mutableListOf<Double>()
-		val vectorC = mutableListOf<Double>()
-		val basisArguments = mutableListOf<Int>()
-		val nonBasisArguments = mutableListOf<Int>()
+		val vectorB = task.rightPartOfRestrictionsSystem
+		val vectorC = task.targetFunCoefficients
+		val basisArgs = mutableListOf<Int>()
+		val nonBasisArgs = mutableListOf<Int>()
 		val coefficientsP = mutableListOf<Double>()
 		var p0 = 0.0
 		var index = 0
@@ -27,12 +27,11 @@ object SimplexMethod {
 		for (i in 0 until task.cols) {
 			for (k in 0 until task.rows) {
 				currentCornerPoint.add(basis.getValue(i, k))
-				vectorC.add(task.matrix[i][k])
 				p0 += basis.getValue(i, k) * task.matrix[i][k]
 				if (basis.getValue(i, k) == 0.0) {
-					nonBasisArguments.add(index)
+					nonBasisArgs.add(index)
 				} else {
-					basisArguments.add(index)
+					basisArgs.add(index)
 				}
 				index++
 			}
@@ -41,30 +40,41 @@ object SimplexMethod {
 		for (i in vectorC.indices) {
 			p0 += vectorC[i] * currentCornerPoint[i]
 		}
+
 		for (i in currentCornerPoint.indices) {
 			if (currentCornerPoint[i] == 0.0) {
 				coefficientsP.add(0.0)
 			} else {
 				var sum = 0.0
 				for (k in initialSimplexTable.indices) {
-					sum += vectorC[i] * initialSimplexTable[k][i]
+					sum += vectorC[i] * initialSimplexTable.getValue(k, i)
 				}
 				coefficientsP.add(vectorC[i] - sum)
 			}
-
 		}
+
+		println("------------------------------------------")
+
+		val modifiedSimplexTable = mapToLeastElementMethodSolve(
+			initialSimplexTable = initialSimplexTable,
+			basis = basis,
+			basisArgs = basisArgs,
+			vectorB = vectorB,
+			vectorC = vectorC
+		).print()
+
 		println("Индексы базисных переменных:")
-		println(basisArguments.joinToString(", "))
+		println(basisArgs.joinToString(", "))
 		println("Индексы небазисных переменных:")
-		println(nonBasisArguments.joinToString(", "))
-		println("Текущая угловая точка (начальный базис):")
-		println(currentCornerPoint.joinToString(", "))
-		println("Вектор коэффициентов при переменных в целевой функции:")
-		println(task.targetFunCoefficients)
-		println("Коэффициент целевой функции p0, выраженной через свободные переменные:")
-		println(p0)
-		println("Коэффициенты целевой функции, выраженной через свободные переменные:")
-		println(coefficientsP.joinToString(", "))
+		println(nonBasisArgs.joinToString(", "))
+//		println("Текущая угловая точка (начальный базис):")
+//		println(currentCornerPoint.joinToString(", "))
+//		println("Вектор коэффициентов при переменных в целевой функции:")
+//		println(task.targetFunCoefficients)
+//		println("Коэффициент целевой функции p0, выраженной через свободные переменные:")
+//		println(p0)
+//		println("Коэффициенты целевой функции, выраженной через свободные переменные:")
+//		println(coefficientsP.joinToString(", "))
 
 //    when (checkCoefficientsP(coefficientsP,matrixOfRestrictions)) {
 //        CoefficientPCheck.NO_SOLVES -> println("нет решений")
@@ -89,11 +99,22 @@ object SimplexMethod {
 
 	}
 
-	private fun createInitialSimplexTable(task: Task): List<List<Double>> {
+	private fun createInitialSimplexTable(task: Task): Matrix {
 		var counter = 1
-		return mutableListOf<List<Double>>().apply {
+		return Matrix(mutableListOf<MutableList<Double>>().apply {
 			for (i in 0 until (task.a.size + task.b.size)) {
 				if (i < task.b.size) {
+					add(
+						List(task.a.size * task.b.size) {
+							if ((it - i) % task.b.size == 0) {
+								VALUE_ONE
+							} else {
+								VALUE_ZERO
+							}
+						}.plus(task.b[i]).toMutableList()
+					)
+
+				} else {
 					add(
 						List(task.a.size * task.b.size) {
 							if (it + 1 <= counter * task.b.size && it + 1 > (i - task.b.size) * task.b.size) {
@@ -102,23 +123,66 @@ object SimplexMethod {
 								VALUE_ZERO
 							}
 
-						}.plus(task.a[i])
-					)
-				} else {
-					add(
-						List(task.a.size * task.b.size) {
-							if ((it - i) % task.b.size == 0) {
-								VALUE_ONE
-							} else {
-								VALUE_ZERO
-							}
-						}.plus(task.b[i- task.b.size])
+						}.plus(task.a[i - task.b.size]).toMutableList()
 					)
 					counter++
 				}
 			}
-			add(task.targetFunCoefficients)
+			add(task.targetFunCoefficients.map { it.unaryMinus() }.toMutableList())
 		}
+		)
+	}
+
+	fun mapToLeastElementMethodSolve(
+		initialSimplexTable: Matrix,
+		basis: Matrix,
+		basisArgs: List<Int>,
+		vectorB: List<Double>,
+		vectorC: List<Double>,
+		) : Matrix {
+
+		val newSimplexTable = initialSimplexTable.copy()
+
+		initialSimplexTable.matrix.forEachIndexed { rowIndex, row ->
+			row.forEachIndexed { colIndex, element ->
+
+				if (colIndex in basisArgs) {
+
+					var min = Double.MAX_VALUE
+					var zmin = 0
+
+					vectorB.forEachIndexed { indexB, b ->
+						initialSimplexTable.getValue(indexB, colIndex).apply {
+							if (this != 0.0) {
+								min = b
+								zmin = indexB
+							}
+						}
+					}
+
+					var currentCoefficient = initialSimplexTable.getValue(zmin, colIndex)
+
+					for (k in 0 until initialSimplexTable.rowSize - 1) {
+						if (currentCoefficient != 0.0) {
+							newSimplexTable.setValue(initialSimplexTable.getValue(zmin, k), zmin, k)
+						}
+					}
+
+					for (k in 0 until basis.rowSize + basis.colSize) {
+						if (initialSimplexTable.getValue(k, rowIndex) != 0.0 && k != zmin) {
+							currentCoefficient = initialSimplexTable.getValue(k, colIndex)
+							for (j in 0 until initialSimplexTable.rowSize - 1) {
+								newSimplexTable.setValue(
+									value = initialSimplexTable.getValue(k, j) - currentCoefficient * initialSimplexTable.getValue(zmin, j),
+									k, j
+								)
+							}
+						}
+					}
+				}
+			}
+		}
+		return newSimplexTable
 	}
 
 	private fun checkCoefficientsP(

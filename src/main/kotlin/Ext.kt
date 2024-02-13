@@ -28,9 +28,3 @@ fun List<List<Double>>.findMinElementPosition(): MinElement {
 	}
 	return MinElement(leastCost, leastCostRow, leastCostCol)
 }
-
-fun List<List<Double>>.printMatrix() {
-	this.map {
-		println("[${it.joinToString(", ")}]")
-	}
-}
