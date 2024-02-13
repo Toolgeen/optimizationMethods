@@ -5,6 +5,7 @@ import Constants.VALUE_ONE
 import Constants.VALUE_ZERO
 import Input.Task
 import models.Matrix
+import java.lang.Exception
 
 object SimplexMethod {
 
@@ -37,21 +38,21 @@ object SimplexMethod {
 			}
 		}
 
-		for (i in vectorC.indices) {
-			p0 += vectorC[i] * currentCornerPoint[i]
-		}
+//		for (i in vectorC.indices) {
+//			p0 += vectorC[i] * currentCornerPoint[i]
+//		}
 
-		for (i in currentCornerPoint.indices) {
-			if (currentCornerPoint[i] == 0.0) {
-				coefficientsP.add(0.0)
-			} else {
-				var sum = 0.0
-				for (k in initialSimplexTable.indices) {
-					sum += vectorC[i] * initialSimplexTable.getValue(k, i)
-				}
-				coefficientsP.add(vectorC[i] - sum)
-			}
-		}
+//		for (i in currentCornerPoint.indices) {
+//			if (currentCornerPoint[i] == 0.0) {
+//				coefficientsP.add(0.0)
+//			} else {
+//				var sum = 0.0
+//				for (k in initialSimplexTable.indices) {
+//					sum += vectorC[i] * initialSimplexTable.getValue(k, i)
+//				}
+//				coefficientsP.add(vectorC[i] - sum)
+//			}
+//		}
 
 		println("------------------------------------------")
 
@@ -141,40 +142,39 @@ object SimplexMethod {
 		vectorC: List<Double>,
 		) : Matrix {
 
-		val newSimplexTable = initialSimplexTable.copy()
-
 		initialSimplexTable.matrix.forEachIndexed { rowIndex, row ->
 			row.forEachIndexed { colIndex, element ->
 
 				if (colIndex in basisArgs) {
 
-					var min = Double.MAX_VALUE
-					var zmin = 0
+					var minimumRightElement = Double.MAX_VALUE
+					var minIndex = 0
 
 					vectorB.forEachIndexed { indexB, b ->
-						initialSimplexTable.getValue(indexB, colIndex).apply {
-							if (this != 0.0) {
-								min = b
-								zmin = indexB
-							}
+						if (initialSimplexTable.getValue(indexB, colIndex) > 0.0 && b < minimumRightElement) {
+							minimumRightElement = b
+							minIndex = indexB
 						}
 					}
 
-					var currentCoefficient = initialSimplexTable.getValue(zmin, colIndex)
+					var currentCoefficient = initialSimplexTable.getValue(minIndex, colIndex)
 
-					for (k in 0 until initialSimplexTable.rowSize - 1) {
+					for (k in 0 until initialSimplexTable.colSize) {
 						if (currentCoefficient != 0.0) {
-							newSimplexTable.setValue(initialSimplexTable.getValue(zmin, k), zmin, k)
+							initialSimplexTable.setValue(initialSimplexTable.getValue(minIndex, k) * currentCoefficient, minIndex, k)
 						}
 					}
 
-					for (k in 0 until basis.rowSize + basis.colSize) {
-						if (initialSimplexTable.getValue(k, rowIndex) != 0.0 && k != zmin) {
+					for (k in 0 until initialSimplexTable.rowSize) {
+						if (initialSimplexTable.getValue(k, colIndex) != 0.0 && k != minIndex) {
+
 							currentCoefficient = initialSimplexTable.getValue(k, colIndex)
-							for (j in 0 until initialSimplexTable.rowSize - 1) {
-								newSimplexTable.setValue(
-									value = initialSimplexTable.getValue(k, j) - currentCoefficient * initialSimplexTable.getValue(zmin, j),
-									k, j
+
+							for (j in 0 until initialSimplexTable.colSize) {
+								initialSimplexTable.setValue(
+									value = initialSimplexTable.getValue(k, j) - (currentCoefficient * initialSimplexTable.getValue(minIndex, j)),
+									row = k,
+									col = j
 								)
 							}
 						}
@@ -182,7 +182,7 @@ object SimplexMethod {
 				}
 			}
 		}
-		return newSimplexTable
+		return initialSimplexTable
 	}
 
 	private fun checkCoefficientsP(

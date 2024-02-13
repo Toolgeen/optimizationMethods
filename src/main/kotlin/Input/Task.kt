@@ -31,7 +31,7 @@ class Task(
 
 	val targetFunCoefficients = matrix.flatMap {
 		it.asIterable()
-	}
+	} + 0.0
 
 	val rightPartOfRestrictionsSystem = b + a
 }
