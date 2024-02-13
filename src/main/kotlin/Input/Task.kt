@@ -28,5 +28,9 @@ class Task(
 			a = listOf(6.0, 8.0, 12.0, 14.0), b = listOf(12.0, 7.0, 8.0, 13.0)
 		)
 	}
+
+	val targetFunCoefficients = matrix.flatMap {
+		it.asIterable()
+	}
 }
 

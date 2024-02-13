@@ -4,17 +4,17 @@ import CoefficientPCheck
 import Constants.VALUE_ONE
 import Constants.VALUE_ZERO
 import Input.Task
+import models.Matrix
 import printMatrix
 
 object SimplexMethod {
 
-	operator fun invoke(basis: List<List<Double>>, task: Task) {
+	operator fun invoke(basis: Matrix, task: Task) {
 
-		val matrixOfRestrictions = createMatrixOfRestrictions(task.a, task.b)
-		println("Система ограничений:")
-		matrixOfRestrictions.printMatrix()
+		val initialSimplexTable = createInitialSimplexTable(task)
+		println("Стандартная форма ЗЛП для решения симплекс-методом:")
+		initialSimplexTable.printMatrix()
 
-		val simplexTable = mutableListOf<DoubleArray>()
 		val currentCornerPoint = mutableListOf<Double>()
 		val vectorC = mutableListOf<Double>()
 		val basisArguments = mutableListOf<Int>()
@@ -26,10 +26,10 @@ object SimplexMethod {
 		//заполнение векторов текущей угловой точки и коэффициентов при переменных в целевой функции
 		for (i in 0 until task.cols) {
 			for (k in 0 until task.rows) {
-				currentCornerPoint.add(basis[i][k])
+				currentCornerPoint.add(basis.getValue(i, k))
 				vectorC.add(task.matrix[i][k])
-				p0 += basis[i][k] * task.matrix[i][k]
-				if (basis[i][k] == 0.0) {
+				p0 += basis.getValue(i, k) * task.matrix[i][k]
+				if (basis.getValue(i, k) == 0.0) {
 					nonBasisArguments.add(index)
 				} else {
 					basisArguments.add(index)
@@ -46,8 +46,8 @@ object SimplexMethod {
 				coefficientsP.add(0.0)
 			} else {
 				var sum = 0.0
-				for (k in matrixOfRestrictions.indices) {
-					sum += vectorC[i] * matrixOfRestrictions[k][i]
+				for (k in initialSimplexTable.indices) {
+					sum += vectorC[i] * initialSimplexTable[k][i]
 				}
 				coefficientsP.add(vectorC[i] - sum)
 			}
@@ -60,7 +60,7 @@ object SimplexMethod {
 		println("Текущая угловая точка (начальный базис):")
 		println(currentCornerPoint.joinToString(", "))
 		println("Вектор коэффициентов при переменных в целевой функции:")
-		println(vectorC.joinToString(", "))
+		println(task.targetFunCoefficients)
 		println("Коэффициент целевой функции p0, выраженной через свободные переменные:")
 		println(p0)
 		println("Коэффициенты целевой функции, выраженной через свободные переменные:")
@@ -89,35 +89,36 @@ object SimplexMethod {
 
 	}
 
-	private fun createMatrixOfRestrictions(a: List<Double>, b: List<Double>): List<List<Double>> {
-		val matrixOfRestrictions = mutableListOf<List<Double>>()
+	private fun createInitialSimplexTable(task: Task): List<List<Double>> {
 		var counter = 1
-		for (i in 0 until (a.size + b.size)) {
-			if (i < b.size) {
-				matrixOfRestrictions.add(
-					List(a.size * b.size) {
-						if ((it - i) % b.size == 0) {
-							VALUE_ONE
-						} else {
-							VALUE_ZERO
-						}
-					}.plus(b[i])
-				)
-			} else {
-				matrixOfRestrictions.add(
-					List(a.size * b.size) {
-						if (it + 1 <= counter * b.size && it + 1 > (i - b.size) * b.size) {
-							VALUE_ONE
-						} else {
-							VALUE_ZERO
-						}
+		return mutableListOf<List<Double>>().apply {
+			for (i in 0 until (task.a.size + task.b.size)) {
+				if (i < task.b.size) {
+					add(
+						List(task.a.size * task.b.size) {
+							if (it + 1 <= counter * task.b.size && it + 1 > (i - task.b.size) * task.b.size) {
+								VALUE_ONE
+							} else {
+								VALUE_ZERO
+							}
 
-					}.plus(a[i - b.size])
-				)
-				counter++
+						}.plus(task.a[i])
+					)
+				} else {
+					add(
+						List(task.a.size * task.b.size) {
+							if ((it - i) % task.b.size == 0) {
+								VALUE_ONE
+							} else {
+								VALUE_ZERO
+							}
+						}.plus(task.b[i- task.b.size])
+					)
+					counter++
+				}
 			}
+			add(task.targetFunCoefficients)
 		}
-		return matrixOfRestrictions
 	}
 
 	private fun checkCoefficientsP(

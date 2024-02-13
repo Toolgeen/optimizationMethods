@@ -5,7 +5,6 @@ import Input.Task
 import findMaxElement
 import findMinElementPosition
 import models.Matrix
-import printMatrix
 
 object LeastElementMethod {
 

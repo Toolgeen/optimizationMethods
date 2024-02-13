@@ -21,5 +21,5 @@ class Matrix(
 
 	val rowSize = matrix.size
 	val colSize = matrix[0].size
-	val indices = 0..rowSize
+	val indices = 0 until rowSize
 }
