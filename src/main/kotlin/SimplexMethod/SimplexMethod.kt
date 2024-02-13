@@ -5,7 +5,6 @@ import Constants.VALUE_ONE
 import Constants.VALUE_ZERO
 import Input.Task
 import models.Matrix
-import java.lang.Exception
 
 object SimplexMethod {
 
@@ -16,19 +15,16 @@ object SimplexMethod {
 		initialSimplexTable.print()
 
 		val currentCornerPoint = mutableListOf<Double>()
-		val vectorB = task.rightPartOfRestrictionsSystem
 		val vectorC = task.targetFunCoefficients
 		val basisArgs = mutableListOf<Int>()
 		val nonBasisArgs = mutableListOf<Int>()
 		val coefficientsP = mutableListOf<Double>()
-		var p0 = 0.0
-		var index = 0
 
 		//заполнение векторов текущей угловой точки и коэффициентов при переменных в целевой функции
-		for (i in 0 until task.cols) {
-			for (k in 0 until task.rows) {
+		var index = 0
+		for (i in 0 until task.rows) {
+			for (k in 0 until task.cols) {
 				currentCornerPoint.add(basis.getValue(i, k))
-				p0 += basis.getValue(i, k) * task.matrix[i][k]
 				if (basis.getValue(i, k) == 0.0) {
 					nonBasisArgs.add(index)
 				} else {
@@ -38,21 +34,26 @@ object SimplexMethod {
 			}
 		}
 
-//		for (i in vectorC.indices) {
-//			p0 += vectorC[i] * currentCornerPoint[i]
-//		}
+		for (i in currentCornerPoint.indices) {
+			if (currentCornerPoint[i] == 0.0) {
+				coefficientsP.add(0.0)
+			} else {
+				var sum = 0.0
+				for (k in initialSimplexTable.indices) {
+					sum += vectorC[i] * initialSimplexTable.getValue(k, i)
+				}
+				coefficientsP.add(vectorC[i] - sum)
+			}
+		}
 
-//		for (i in currentCornerPoint.indices) {
-//			if (currentCornerPoint[i] == 0.0) {
-//				coefficientsP.add(0.0)
-//			} else {
-//				var sum = 0.0
-//				for (k in initialSimplexTable.indices) {
-//					sum += vectorC[i] * initialSimplexTable.getValue(k, i)
-//				}
-//				coefficientsP.add(vectorC[i] - sum)
-//			}
-//		}
+		println("Индексы базисных переменных:")
+		println(basisArgs.joinToString(", "))
+		println("Индексы небазисных переменных:")
+		println(nonBasisArgs.joinToString(", "))
+		println("Текущая угловая точка (начальный базис):")
+		println(currentCornerPoint.joinToString(", "))
+		println("Вектор коэффициентов при переменных в целевой функции:")
+		println(task.targetFunCoefficients)
 
 		println("------------------------------------------")
 
@@ -60,43 +61,9 @@ object SimplexMethod {
 			initialSimplexTable = initialSimplexTable,
 			basis = basis,
 			basisArgs = basisArgs,
-			vectorB = vectorB,
-			vectorC = vectorC
+			vectorB = task.rightPartOfRestrictionsSystem,
+			vectorC = task.simplexTablePRow
 		).print()
-
-		println("Индексы базисных переменных:")
-		println(basisArgs.joinToString(", "))
-		println("Индексы небазисных переменных:")
-		println(nonBasisArgs.joinToString(", "))
-//		println("Текущая угловая точка (начальный базис):")
-//		println(currentCornerPoint.joinToString(", "))
-//		println("Вектор коэффициентов при переменных в целевой функции:")
-//		println(task.targetFunCoefficients)
-//		println("Коэффициент целевой функции p0, выраженной через свободные переменные:")
-//		println(p0)
-//		println("Коэффициенты целевой функции, выраженной через свободные переменные:")
-//		println(coefficientsP.joinToString(", "))
-
-//    when (checkCoefficientsP(coefficientsP,matrixOfRestrictions)) {
-//        CoefficientPCheck.NO_SOLVES -> println("нет решений")
-//        CoefficientPCheck.SOLVED -> println("решено")
-//        CoefficientPCheck.CONTINUE -> println("продолжаем решение")
-//    }
-
-//    val iterationOfSimplexTable = 1
-//    while (checkCoefficientsP(coefficientsP,matrixOfRestrictions) == CoefficientPCheck.CONTINUE) {
-//        println("Соблюдено условие В, продолжаем решение:")
-//
-//        var firstRow = mutableListOf<String>()
-//        firstRow.add("СТ-$iterationOfSimplexTable")
-//        for (i in nonBasisArguments) {
-//            firstRow.add("X${i}")
-//        }
-//        firstRow.add("b")
-//        for (i in basisArguments) {
-//
-//        }
-//    }
 
 	}
 
@@ -129,7 +96,7 @@ object SimplexMethod {
 					counter++
 				}
 			}
-			add(task.targetFunCoefficients.map { it.unaryMinus() }.toMutableList())
+			add(task.simplexTablePRow.map { it.unaryMinus() }.toMutableList())
 		}
 		)
 	}
