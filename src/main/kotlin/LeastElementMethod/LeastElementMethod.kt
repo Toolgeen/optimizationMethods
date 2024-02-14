@@ -57,9 +57,9 @@ object LeastElementMethod {
 
 		when {
 			rows == 1 -> {
-				for (i in basis.indices) {
+				for (i in basis.rowIndices) {
 					if (disabledRows[i]) {
-						for (k in basis.indices) {
+						for (k in basis.rowIndices) {
 							if (disabledCols[k]) {
 								basis.setValue(b[k], i, k)
 							}
@@ -68,9 +68,9 @@ object LeastElementMethod {
 				}
 			}
 			cols == 1 -> {
-				for (i in basis.indices) {
+				for (i in basis.rowIndices) {
 					if (disabledCols[i]) {
-						for (k in basis.indices) {
+						for (k in basis.rowIndices) {
 							if (disabledRows[k]) {
 								basis.setValue(a[k], k, i)
 							}

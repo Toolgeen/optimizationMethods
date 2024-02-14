@@ -5,6 +5,7 @@ import Constants.VALUE_ZERO
 import Input.Task
 import models.LeastElemMethodBasis
 import models.Matrix
+import models.SimplifiedSimplexTable
 
 object SimplexMethod {
 
@@ -124,9 +125,9 @@ object SimplexMethod {
 		return initialSimplexTable
 	}
 
-	private fun formatSimplexTable(simplexTable: Matrix, basisArgs: List<Int>): Matrix {
-		return Matrix(simplexTable.matrix.filter { !it.none { it != 0.0 } }.map {
+	private fun formatSimplexTable(simplexTable: Matrix, basisArgs: List<Int>): SimplifiedSimplexTable {
+		return SimplifiedSimplexTable(simplexTable.matrix.filter { !it.none { it != 0.0 } }.map {
 			it.filterIndexed { index, d -> index !in basisArgs || index == simplexTable.colSize - 1 }.toMutableList()
-		}.toMutableList())
+		}.toMutableList(), basisArgs, simplexTable.colIndices.filter { !basisArgs.contains(it) }.dropLast(1))
 	}
 }

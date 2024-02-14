@@ -24,10 +24,11 @@ open class Matrix(
 		}
 	}.toString()
 
-	private fun maxLengthInElements() = matrix.flatten().map { it.toString() }.maxByOrNull { it.length }?.length ?: 0
-	private fun List<Double>.formatRowWithPaddings() = this.map { it.toString().padStart(maxLengthInElements(), ' ') }
+	protected fun maxLengthInElements() = matrix.flatten().map { it.toString() }.maxByOrNull { it.length }?.length ?: 0
+	protected open fun List<Double>.formatRowWithPaddings() = this.map { it.toString().padStart(maxLengthInElements(), ' ') }
 
 	val rowSize = matrix.size
 	val colSize = matrix[0].size
-	val indices = 0 until rowSize
+	val rowIndices = 0 until rowSize
+	val colIndices = 0 until colSize
 }
