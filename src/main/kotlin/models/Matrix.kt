@@ -16,9 +16,13 @@ open class Matrix(
 		cols: Int
 	) : this(MutableList(rows) { MutableList(cols) { VALUE_ZERO } })
 
-	fun print() = matrix.map {
-		println("[${it.formatRowWithPaddings().joinToString(separator = ", ")}]")
-	}
+	fun print() = println(this.toString())
+
+	override fun toString() = StringBuilder().apply {
+		matrix.map {
+			appendLine("[${it.formatRowWithPaddings().joinToString(separator = ", ")}]")
+		}
+	}.toString()
 
 	private fun maxLengthInElements() = matrix.flatten().map { it.toString() }.maxByOrNull { it.length }?.length ?: 0
 	private fun List<Double>.formatRowWithPaddings() = this.map { it.toString().padStart(maxLengthInElements(), ' ') }

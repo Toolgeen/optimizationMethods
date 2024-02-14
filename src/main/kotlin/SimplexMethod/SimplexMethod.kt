@@ -11,24 +11,32 @@ object SimplexMethod {
 	operator fun invoke(basis: LeastElemMethodBasis, task: Task) {
 
 		val initialSimplexTable = createInitialSimplexTable(task)
-		println("Стандартная форма ЗЛП для решения симплекс-методом:")
-		initialSimplexTable.print()
 
-		val basisArgs = basis.basisArgs
-		val nonBasisArgs = mutableListOf<Int>()
+		val output by lazy {
+			StringBuilder().apply {
+				appendLine("Стандартная форма ЗЛП для решения симплекс-методом:")
+				appendLine(initialSimplexTable)
+				appendLine("Индексы базисных переменных:")
+				appendLine(basis.basisArgs.joinToString(", "))
+				appendLine("Вектор коэффициентов при переменных в целевой функции:")
+				appendLine(task.targetFunCoefficients)
+				appendLine("------------------------------------------")
+			}
+		}
 
-		println("Индексы базисных переменных:")
-		println(basisArgs.joinToString(", "))
-		println("Вектор коэффициентов при переменных в целевой функции:")
-		println(task.targetFunCoefficients)
+		println(output)
 
-		println("------------------------------------------")
+		println("----------")
 
 		val modifiedSimplexTable = mapToLeastElementMethodSolve(
 			initialSimplexTable = initialSimplexTable,
-			basisArgs = basisArgs,
+			basisArgs = basis.basisArgs,
 			vectorB = task.rightPartOfRestrictionsSystem,
 		).print()
+
+		println("----------")
+
+		val cleanSimplexTable = formatSimplexTable(initialSimplexTable, basis.basisArgs).print()
 
 	}
 
@@ -116,7 +124,9 @@ object SimplexMethod {
 		return initialSimplexTable
 	}
 
-//	private fun excludeBasisArgsCols() {
-//		simplexTable: Marhix
-//	}
+	private fun formatSimplexTable(simplexTable: Matrix, basisArgs: List<Int>): Matrix {
+		return Matrix(simplexTable.matrix.filter { !it.none { it != 0.0 } }.map {
+			it.filterIndexed { index, d -> index !in basisArgs || index == simplexTable.colSize - 1 }.toMutableList()
+		}.toMutableList())
+	}
 }
