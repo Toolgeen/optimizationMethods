@@ -1,57 +1,24 @@
 package SimplexMethod
 
-import CoefficientPCheck
 import Constants.VALUE_ONE
 import Constants.VALUE_ZERO
 import Input.Task
+import models.LeastElemMethodBasis
 import models.Matrix
 
 object SimplexMethod {
 
-	operator fun invoke(basis: Matrix, task: Task) {
+	operator fun invoke(basis: LeastElemMethodBasis, task: Task) {
 
 		val initialSimplexTable = createInitialSimplexTable(task)
 		println("Стандартная форма ЗЛП для решения симплекс-методом:")
 		initialSimplexTable.print()
 
-		val currentCornerPoint = mutableListOf<Double>()
-		val vectorC = task.targetFunCoefficients
-		val basisArgs = mutableListOf<Int>()
+		val basisArgs = basis.basisArgs
 		val nonBasisArgs = mutableListOf<Int>()
-		val coefficientsP = mutableListOf<Double>()
-
-		//заполнение векторов текущей угловой точки и коэффициентов при переменных в целевой функции
-		var index = 0
-		for (i in 0 until task.rows) {
-			for (k in 0 until task.cols) {
-				currentCornerPoint.add(basis.getValue(i, k))
-				if (basis.getValue(i, k) == 0.0) {
-					nonBasisArgs.add(index)
-				} else {
-					basisArgs.add(index)
-				}
-				index++
-			}
-		}
-
-		for (i in currentCornerPoint.indices) {
-			if (currentCornerPoint[i] == 0.0) {
-				coefficientsP.add(0.0)
-			} else {
-				var sum = 0.0
-				for (k in initialSimplexTable.indices) {
-					sum += vectorC[i] * initialSimplexTable.getValue(k, i)
-				}
-				coefficientsP.add(vectorC[i] - sum)
-			}
-		}
 
 		println("Индексы базисных переменных:")
 		println(basisArgs.joinToString(", "))
-		println("Индексы небазисных переменных:")
-		println(nonBasisArgs.joinToString(", "))
-		println("Текущая угловая точка (начальный базис):")
-		println(currentCornerPoint.joinToString(", "))
 		println("Вектор коэффициентов при переменных в целевой функции:")
 		println(task.targetFunCoefficients)
 
@@ -59,10 +26,8 @@ object SimplexMethod {
 
 		val modifiedSimplexTable = mapToLeastElementMethodSolve(
 			initialSimplexTable = initialSimplexTable,
-			basis = basis,
 			basisArgs = basisArgs,
 			vectorB = task.rightPartOfRestrictionsSystem,
-			vectorC = task.simplexTablePRow
 		).print()
 
 	}
@@ -101,12 +66,10 @@ object SimplexMethod {
 		)
 	}
 
-	fun mapToLeastElementMethodSolve(
+	private fun mapToLeastElementMethodSolve(
 		initialSimplexTable: Matrix,
-		basis: Matrix,
 		basisArgs: List<Int>,
 		vectorB: List<Double>,
-		vectorC: List<Double>,
 		) : Matrix {
 
 		initialSimplexTable.matrix.forEachIndexed { rowIndex, row ->
@@ -147,35 +110,13 @@ object SimplexMethod {
 						}
 					}
 				}
+
 			}
 		}
 		return initialSimplexTable
 	}
 
-	private fun checkCoefficientsP(
-		coefficientsP: MutableList<Double>,
-		matrixOfRestrictions: Array<DoubleArray>
-	) : CoefficientPCheck {
-		// шаг 3, проверка коэффициентов целевой функции
-		var conditionA = true
-		var conditionB = true
-		var conditionC = true
-		for (i in coefficientsP) {
-			if (i < 0) {
-				for (k in matrixOfRestrictions.indices) {
-					var isColNegativeOrZero = true
-					isColNegativeOrZero = isColNegativeOrZero && (matrixOfRestrictions[k][coefficientsP.indexOf(i)] <= 0)
-					conditionB = conditionB && isColNegativeOrZero
-				}
-			}
-			conditionA = conditionA && (i >= 0)
-		}
-		if (conditionA) {
-			return CoefficientPCheck.SOLVED
-		}
-		if (conditionB) {
-			return CoefficientPCheck.NO_SOLVES
-		}
-		return CoefficientPCheck.CONTINUE
-	}
+//	private fun excludeBasisArgsCols() {
+//		simplexTable: Marhix
+//	}
 }

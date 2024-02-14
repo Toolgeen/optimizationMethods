@@ -4,13 +4,14 @@ import Constants.VALUE_ZERO
 import Input.Task
 import findMaxElement
 import findMinElementPosition
+import models.LeastElemMethodBasis
 import models.Matrix
 
 object LeastElementMethod {
 
 	operator fun invoke(
 		task: Task
-	): Matrix {
+	): LeastElemMethodBasis {
 
 		var rows = task.rows
 		var cols = task.cols
@@ -19,7 +20,7 @@ object LeastElementMethod {
 		var x = task.matrix
 		val disabledRows = MutableList(rows) { true }
 		val disabledCols = MutableList(cols) { true }
-		val basis = Matrix(rows, cols)
+		val basis = LeastElemMethodBasis(rows, cols)
 
 
 		var iterations = VALUE_ZERO.toInt()

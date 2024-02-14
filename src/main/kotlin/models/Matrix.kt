@@ -2,7 +2,7 @@ package models
 
 import Constants.VALUE_ZERO
 
-data class Matrix(
+open class Matrix(
 	val matrix: MutableList<MutableList<Double>>
 ) {
 	fun setValue(value: Double, row: Int, col: Int) {
@@ -17,8 +17,11 @@ data class Matrix(
 	) : this(MutableList(rows) { MutableList(cols) { VALUE_ZERO } })
 
 	fun print() = matrix.map {
-		println("[${it.joinToString(", ")}]")
+		println("[${it.formatRowWithPaddings().joinToString(separator = ", ")}]")
 	}
+
+	private fun maxLengthInElements() = matrix.flatten().map { it.toString() }.maxByOrNull { it.length }?.length ?: 0
+	private fun List<Double>.formatRowWithPaddings() = this.map { it.toString().padStart(maxLengthInElements(), ' ') }
 
 	val rowSize = matrix.size
 	val colSize = matrix[0].size
