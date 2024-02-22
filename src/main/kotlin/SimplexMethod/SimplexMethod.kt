@@ -2,6 +2,7 @@ package SimplexMethod
 
 import Input.Task
 import models.LeastElemMethodBasis
+import models.SimplifiedSimplexTable
 
 object SimplexMethod {
 
@@ -36,10 +37,41 @@ object SimplexMethod {
 			}
 		}
 
+		findSolve(cleanSimplexTable)
 
 	}
 
+	fun findSolve(table: SimplifiedSimplexTable) {
+		var isSolved = false
+		var iteration = 0
+		while (!isSolved) {
+			iteration++
+			val (refRow, refCol) = table.findReferenceElementIndices()
+			val refElement = table.getValue(refRow, refCol)
+			table.switchVariables(refRow, refCol)
 
+			table.matrix[refRow].forEachIndexed { colIndex, element ->
+				table.setValue(element / refElement, refRow, colIndex)
+			}
 
-
+			table.matrix.forEachIndexed { rowIndex, row ->
+				if (rowIndex != refRow) {
+					row.forEachIndexed { colIndex, element ->
+						if (colIndex == 9 && rowIndex == 7) {
+							println("goo")
+						}
+						table.setValue(
+							value = table.getValue(rowIndex, colIndex) - (table.getValue(rowIndex, refCol) * table.getValue(refRow, colIndex)),
+							row = rowIndex,
+							col = colIndex
+						)
+					}
+				}
+			}
+			isSolved = table.isSolved()
+			println("finished iteration $iteration")
+		}
+		println("final solution")
+		table.print()
+	}
 }

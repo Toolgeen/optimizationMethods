@@ -57,7 +57,7 @@ fun Matrix.mapToLeastElementMethodSolve(
 fun Matrix.formatSimplexTable(basisArgs: List<Int>): SimplifiedSimplexTable {
 	return SimplifiedSimplexTable(this.matrix.filter { !it.none { it != 0.0 } }.map {
 		it.filterIndexed { index, d -> index !in basisArgs || index == this.colSize - 1 }.toMutableList()
-	}.toMutableList(), basisArgs, this.colIndices.filter { !basisArgs.contains(it) }.dropLast(1))
+	}.toMutableList(), basisArgs.toMutableList(), this.colIndices.filter { !basisArgs.contains(it) }.dropLast(1).toMutableList())
 }
 
 fun createInitialSimplexTable(task: Task): Matrix {
@@ -92,4 +92,40 @@ fun createInitialSimplexTable(task: Task): Matrix {
 		add(task.simplexTablePRow.map { it.unaryMinus() }.toMutableList())
 	}
 	)
+}
+
+fun SimplifiedSimplexTable.findReferenceElementIndices() : Pair<Int, Int> {
+	return this.findRefCol().let {
+		this.findRefRow(it) to it
+	}
+}
+
+
+fun SimplifiedSimplexTable.findRefCol() : Int = matrix.last().indexOf(matrix.last().dropLast(1).maxOrNull())
+
+fun SimplifiedSimplexTable.findRefRow(colIndex: Int) : Int {
+	var min = Double.MAX_VALUE
+	var refRow = 0
+	matrix.forEachIndexed { index, row ->
+		if (row[colIndex] > 0 && row.last() / row[colIndex] < min) {
+			min = row.last() / row[colIndex]
+			refRow = index
+		}
+	}
+	return refRow
+}
+
+fun SimplifiedSimplexTable.isSolved() : Boolean {
+	var isSolved = true
+	this.matrix.last().dropLast(1).forEach {
+		isSolved = !(it > 0)
+	}
+	return isSolved
+}
+
+fun SimplifiedSimplexTable.switchVariables(row: Int, col: Int) {
+	(this.basisArgs[row] to this.nonBasisArgs[col]).apply {
+		this@switchVariables.basisArgs[row] = this.second
+		this@switchVariables.nonBasisArgs[col] = this.first
+	}
 }

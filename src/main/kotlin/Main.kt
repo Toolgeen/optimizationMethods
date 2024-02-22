@@ -6,7 +6,7 @@ import SimplexMethod.SimplexMethod
 
 private fun main() {
 
-    val task = Task.TestData2
+    val task = Task.TestData
 
     val basis = LeastElementMethod(task)
 

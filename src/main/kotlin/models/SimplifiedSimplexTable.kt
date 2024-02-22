@@ -2,8 +2,8 @@ package models
 
 class SimplifiedSimplexTable(
 	matrix: MutableList<MutableList<Double>>,
-	val basisArgs: List<Int>,
-	val nonBasisArgs: List<Int>
+	val basisArgs: MutableList<Int>,
+	val nonBasisArgs: MutableList<Int>
 ) : Matrix(matrix) {
 
 	override fun toString() = StringBuilder().apply {
