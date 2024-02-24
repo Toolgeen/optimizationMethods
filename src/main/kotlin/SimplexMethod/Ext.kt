@@ -11,56 +11,52 @@ fun Matrix.mapToLeastElementMethodSolve(
 	vectorB: List<Double>,
 ) {
 
-	this.matrix.forEachIndexed { rowIndex, row ->
-		row.forEachIndexed { colIndex, element ->
+	basisArgs.forEach { colIndex ->
 
-			if (colIndex in basisArgs) {
+		var minimumRightElement = Double.MAX_VALUE
+		var minIndex = 0
 
-				var minimumRightElement = Double.MAX_VALUE
-				var minIndex = 0
+		vectorB.forEachIndexed { indexB, b ->
+			if (this.getValue(indexB, colIndex) != 0.0 && b < minimumRightElement) {
+				minimumRightElement = b
+				minIndex = indexB
+			}
+		}
 
-				vectorB.forEachIndexed { indexB, b ->
-					if (this.getValue(indexB, colIndex) > 0.0 && b < minimumRightElement) {
-						minimumRightElement = b
-						minIndex = indexB
-					}
-				}
+		var currentCoefficient = this.getValue(minIndex, colIndex)
 
-				var currentCoefficient = this.getValue(minIndex, colIndex)
+		for (k in 0 until this.colSize) {
+			this.setValue(this.getValue(minIndex, k) * currentCoefficient, minIndex, k)
+		}
 
-				for (k in 0 until this.colSize) {
-					if (currentCoefficient != 0.0) {
-						this.setValue(this.getValue(minIndex, k) * currentCoefficient, minIndex, k)
-					}
-				}
+		for (k in 0 until this.rowSize) {
+			if (this.getValue(k, colIndex) != 0.0 && k != minIndex) {
 
-				for (k in 0 until this.rowSize) {
-					if (this.getValue(k, colIndex) != 0.0 && k != minIndex) {
+				currentCoefficient = this.getValue(k, colIndex)
 
-						currentCoefficient = this.getValue(k, colIndex)
-
-						for (j in 0 until this.colSize) {
-							this.setValue(
-								value = this.getValue(k, j) - (currentCoefficient * this.getValue(minIndex, j)),
-								row = k,
-								col = j
-							)
-						}
-					}
+				for (j in 0 until this.colSize) {
+					this.setValue(
+						value = this.getValue(k, j) - (currentCoefficient * this.getValue(minIndex, j)),
+						row = k,
+						col = j
+					)
 				}
 			}
-
 		}
 	}
 }
 
 fun Matrix.formatSimplexTable(basisArgs: List<Int>): SimplifiedSimplexTable {
-	return SimplifiedSimplexTable(this.matrix.filter { !it.none { it != 0.0 } }.map {
-		it.filterIndexed { index, d -> index !in basisArgs || index == this.colSize - 1 }.toMutableList()
-	}.toMutableList(), basisArgs.toMutableList(), this.colIndices.filter { !basisArgs.contains(it) }.dropLast(1).toMutableList())
+	return SimplifiedSimplexTable(
+		this.matrix.filter { !it.none { it != 0.0 } }.map {
+			it.filterIndexed { index, d -> index !in basisArgs || index == this.colSize - 1 }.toMutableList()
+		}.toMutableList(),
+		basisArgs.toMutableList(),
+		this.colIndices.filter { !basisArgs.contains(it) }.dropLast(1).toMutableList()
+	)
 }
 
-fun createInitialSimplexTable(task: Task): Matrix {
+fun createRestrictionsSystem(task: Task): Matrix {
 	var counter = 1
 	return Matrix(mutableListOf<MutableList<Double>>().apply {
 		for (i in 0 until (task.a.size + task.b.size)) {
@@ -89,21 +85,20 @@ fun createInitialSimplexTable(task: Task): Matrix {
 				counter++
 			}
 		}
-		add(task.simplexTablePRow.map { it.unaryMinus() }.toMutableList())
 	}
 	)
 }
 
-fun SimplifiedSimplexTable.findReferenceElementIndices() : Pair<Int, Int> {
+fun SimplifiedSimplexTable.findReferenceElementIndices(): Pair<Int, Int> {
 	return this.findRefCol().let {
 		this.findRefRow(it) to it
 	}
 }
 
 
-fun SimplifiedSimplexTable.findRefCol() : Int = matrix.last().indexOf(matrix.last().dropLast(1).maxOrNull())
+fun SimplifiedSimplexTable.findRefCol(): Int = matrix.last().indexOf(matrix.last().dropLast(1).maxOrNull())
 
-fun SimplifiedSimplexTable.findRefRow(colIndex: Int) : Int {
+fun SimplifiedSimplexTable.findRefRow(colIndex: Int): Int {
 	var min = Double.MAX_VALUE
 	var refRow = 0
 	matrix.forEachIndexed { index, row ->
@@ -115,7 +110,7 @@ fun SimplifiedSimplexTable.findRefRow(colIndex: Int) : Int {
 	return refRow
 }
 
-fun SimplifiedSimplexTable.isSolved() : Boolean {
+fun SimplifiedSimplexTable.isSolved(): Boolean {
 	var isSolved = true
 	this.matrix.last().dropLast(1).forEach {
 		isSolved = !(it > 0)
