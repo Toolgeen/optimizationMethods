@@ -25,13 +25,13 @@ object SimplexMethod {
 		println(output)
 
 		val cleanSimplexTable = restrictionsSystem.run {
-			mapToLeastElementMethodSolve(
-				basisArgs = basis.basisArgs,
-				vectorB = task.rightPartOfRestrictionsSystem,
-			)
+			mapToLeastElementMethodSolve(basisArgs = basis.basisArgs)
 			println("----------")
-			restrictionsSystem
-		}.print()
+			print()
+			formatSimplexTable(basisArgs = basis.basisArgs)
+		}
+		cleanSimplexTable.print()
+
 	}
 
 	fun findSolve(table: SimplifiedSimplexTable) {

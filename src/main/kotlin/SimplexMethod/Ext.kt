@@ -6,20 +6,17 @@ import Input.Task
 import models.Matrix
 import models.SimplifiedSimplexTable
 
-fun Matrix.mapToLeastElementMethodSolve(
-	basisArgs: List<Int>,
-	vectorB: List<Double>,
-) {
+fun Matrix.mapToLeastElementMethodSolve(basisArgs: List<Int>) {
 
 	basisArgs.forEach { colIndex ->
 
 		var minimumRightElement = Double.MAX_VALUE
 		var minIndex = 0
 
-		vectorB.forEachIndexed { indexB, b ->
-			if (this.getValue(indexB, colIndex) != 0.0 && b < minimumRightElement) {
-				minimumRightElement = b
-				minIndex = indexB
+		this.matrix.forEachIndexed { rowIndex, _ ->
+			if (this.getValue(rowIndex, colIndex) > 0.0 && this.getValue(rowIndex, this.colSize - 1) * this.getValue(rowIndex, colIndex) < minimumRightElement) {
+				minimumRightElement = this.getValue(rowIndex, this.colSize - 1)  * this.getValue(rowIndex, colIndex)
+				minIndex = rowIndex
 			}
 		}
 
@@ -47,10 +44,19 @@ fun Matrix.mapToLeastElementMethodSolve(
 }
 
 fun Matrix.formatSimplexTable(basisArgs: List<Int>): SimplifiedSimplexTable {
+	val cleanedZeroRowMatrix = this.matrix.filter { !it.none { it != 0.0 } }
+	val newMatrix = mutableListOf<MutableList<Double>>()
+	basisArgs.forEach { basisArgIndex ->
+		val cleanedRow = cleanedZeroRowMatrix
+			.first { it[basisArgIndex] == 1.0 }
+			.filterIndexed { index, d -> index !in basisArgs }
+		val basisRow = cleanedRow.mapIndexed { index, element ->
+			if (index != cleanedRow.lastIndex) element.unaryMinus() else element
+		}.toMutableList()
+		newMatrix.add(basisRow)
+	}
 	return SimplifiedSimplexTable(
-		this.matrix.filter { !it.none { it != 0.0 } }.map {
-			it.filterIndexed { index, d -> index !in basisArgs || index == this.colSize - 1 }.toMutableList()
-		}.toMutableList(),
+		newMatrix,
 		basisArgs.toMutableList(),
 		this.colIndices.filter { !basisArgs.contains(it) }.dropLast(1).toMutableList()
 	)

@@ -25,7 +25,14 @@ open class Matrix(
 	}.toString()
 
 	protected fun maxLengthInElements() = matrix.flatten().map { it.toString() }.maxByOrNull { it.length }?.length ?: 0
-	protected open fun List<Double>.formatRowWithPaddings() = this.map { it.toString().padStart(maxLengthInElements(), ' ') }
+	protected open fun List<Double>.formatRowWithPaddings() = this.map { it.toCustomString().padStart(maxLengthInElements(), ' ') }
+	private fun Double.toCustomString(): String {
+		return if (this % 1.0 == 0.0) {
+			this.toInt().toString()
+		} else {
+			this.toString()
+		}
+	}
 
 	val rowSize = matrix.size
 	val colSize = matrix[0].size
