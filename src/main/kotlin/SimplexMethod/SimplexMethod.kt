@@ -2,7 +2,7 @@ package SimplexMethod
 
 import Input.Task
 import models.LeastElemMethodBasis
-import models.SimplifiedSimplexTable
+import models.SimplexTable
 
 object SimplexMethod {
 
@@ -28,17 +28,22 @@ object SimplexMethod {
 			mapToLeastElementMethodSolve(basisArgs = basis.basisArgs)
 			println("----------")
 			print()
-			formatSimplexTable(basisArgs = basis.basisArgs)
+			formatSimplexTable(
+				basisArgs = basis.basisArgs,
+				targetFunCoefficients = task.targetFunCoefficients
+			)
 		}
 		cleanSimplexTable.print()
 
+		findSolve(cleanSimplexTable)
 	}
 
-	fun findSolve(table: SimplifiedSimplexTable) {
+	fun findSolve(table: SimplexTable) {
 		var isSolved = false
 		var iteration = 0
 		while (!isSolved) {
 			iteration++
+			println("started iteration $iteration")
 			val (refRow, refCol) = table.findReferenceElementIndices()
 			val refElement = table.getValue(refRow, refCol)
 			table.switchVariables(refRow, refCol)
@@ -50,9 +55,6 @@ object SimplexMethod {
 			table.matrix.forEachIndexed { rowIndex, row ->
 				if (rowIndex != refRow) {
 					row.forEachIndexed { colIndex, element ->
-						if (colIndex == 9 && rowIndex == 7) {
-							println("goo")
-						}
 						table.setValue(
 							value = table.getValue(rowIndex, colIndex) - (table.getValue(rowIndex, refCol) * table.getValue(refRow, colIndex)),
 							row = rowIndex,
@@ -61,6 +63,11 @@ object SimplexMethod {
 					}
 				}
 			}
+			table.apply {
+				this.matrix.dropLast(1)
+				this.matrix.add(createCostsRow(table))
+			}
+
 			isSolved = table.isSolved()
 			println("finished iteration $iteration")
 		}

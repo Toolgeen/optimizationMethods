@@ -4,7 +4,7 @@ import Constants.VALUE_ONE
 import Constants.VALUE_ZERO
 import Input.Task
 import models.Matrix
-import models.SimplifiedSimplexTable
+import models.SimplexTable
 
 fun Matrix.mapToLeastElementMethodSolve(basisArgs: List<Int>) {
 
@@ -43,7 +43,7 @@ fun Matrix.mapToLeastElementMethodSolve(basisArgs: List<Int>) {
 	}
 }
 
-fun Matrix.formatSimplexTable(basisArgs: List<Int>): SimplifiedSimplexTable {
+fun Matrix.formatSimplexTable(basisArgs: List<Int>, targetFunCoefficients: List<Double>): SimplexTable {
 	val cleanedZeroRowMatrix = this.matrix.filter { !it.none { it != 0.0 } }
 	val newMatrix = mutableListOf<MutableList<Double>>()
 	basisArgs.forEach { basisArgIndex ->
@@ -55,11 +55,40 @@ fun Matrix.formatSimplexTable(basisArgs: List<Int>): SimplifiedSimplexTable {
 		}.toMutableList()
 		newMatrix.add(basisRow)
 	}
-	return SimplifiedSimplexTable(
-		newMatrix,
-		basisArgs.toMutableList(),
-		this.colIndices.filter { !basisArgs.contains(it) }.dropLast(1).toMutableList()
+	newMatrix.add(createCostsRow(basisArgs, targetFunCoefficients, newMatrix))
+
+	return SimplexTable(
+		matrix = newMatrix,
+		basisArgs = basisArgs.toMutableList(),
+		nonBasisArgs = this.colIndices.filter { !basisArgs.contains(it) }.dropLast(1).toMutableList(),
+		targetFunCoefficients = targetFunCoefficients
 	)
+}
+
+fun createCostsRow(simplexTable: SimplexTable) = createCostsRow(
+	basisArgs = simplexTable.basisArgs,
+	targetFunCoefficients = simplexTable.targetFunCoefficients,
+	matrix = simplexTable.matrix
+)
+
+fun createCostsRow(
+	basisArgs: List<Int>,
+	targetFunCoefficients: List<Double>,
+	matrix: MutableList<MutableList<Double>>
+) : MutableList<Double> {
+	var currentCost = 0.0
+	basisArgs.forEachIndexed { index, element ->
+		val transferCost = targetFunCoefficients[element]
+		val transferValue = matrix[index].last()
+		currentCost += transferCost * transferValue
+	}
+	return targetFunCoefficients
+		.filterIndexed { index, element ->
+			index !in basisArgs
+		}.map {
+			it.unaryMinus()
+		}.plus(currentCost)
+		.toMutableList()
 }
 
 fun createRestrictionsSystem(task: Task): Matrix {
@@ -95,16 +124,16 @@ fun createRestrictionsSystem(task: Task): Matrix {
 	)
 }
 
-fun SimplifiedSimplexTable.findReferenceElementIndices(): Pair<Int, Int> {
+fun SimplexTable.findReferenceElementIndices(): Pair<Int, Int> {
 	return this.findRefCol().let {
 		this.findRefRow(it) to it
 	}
 }
 
 
-fun SimplifiedSimplexTable.findRefCol(): Int = matrix.last().indexOf(matrix.last().dropLast(1).maxOrNull())
+fun SimplexTable.findRefCol(): Int = matrix.last().indexOf(matrix.last().dropLast(1).maxOrNull())
 
-fun SimplifiedSimplexTable.findRefRow(colIndex: Int): Int {
+fun SimplexTable.findRefRow(colIndex: Int): Int {
 	var min = Double.MAX_VALUE
 	var refRow = 0
 	matrix.forEachIndexed { index, row ->
@@ -116,7 +145,7 @@ fun SimplifiedSimplexTable.findRefRow(colIndex: Int): Int {
 	return refRow
 }
 
-fun SimplifiedSimplexTable.isSolved(): Boolean {
+fun SimplexTable.isSolved(): Boolean {
 	var isSolved = true
 	this.matrix.last().dropLast(1).forEach {
 		isSolved = !(it > 0)
@@ -124,7 +153,7 @@ fun SimplifiedSimplexTable.isSolved(): Boolean {
 	return isSolved
 }
 
-fun SimplifiedSimplexTable.switchVariables(row: Int, col: Int) {
+fun SimplexTable.switchVariables(row: Int, col: Int) {
 	(this.basisArgs[row] to this.nonBasisArgs[col]).apply {
 		this@switchVariables.basisArgs[row] = this.second
 		this@switchVariables.nonBasisArgs[col] = this.first
