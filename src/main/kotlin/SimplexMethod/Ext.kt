@@ -126,17 +126,25 @@ fun createRestrictionsSystem(task: Task): Matrix {
 }
 
 fun SimplexTable.findReferenceElementIndices(): Pair<Int, Int> {
-	return this.findRefCol().let {
-		this.findRefRow(it) to it
+	var col = 0
+	var row: Int? = null
+	var currentTargetFunCoefficient = Double.MAX_VALUE
+	this.matrix.last().dropLast(1).forEachIndexed { colIndex, targetFunCoefficient ->
+		if (targetFunCoefficient <= currentTargetFunCoefficient && targetFunCoefficient < 0) {
+			currentTargetFunCoefficient = targetFunCoefficient
+			row = findRefRow(colIndex)
+			if (row != null) col = colIndex
+		}
 	}
+	return (row ?: 0) to col
 }
 
 
-fun SimplexTable.findRefCol(): Int = matrix.last().indexOf(matrix.last().dropLast(1).maxOrNull())
+fun SimplexTable.findRefCol(): Int = matrix.last().indexOf(matrix.last().dropLast(1).minOrNull())
 
-fun SimplexTable.findRefRow(colIndex: Int): Int {
+fun SimplexTable.findRefRow(colIndex: Int): Int? {
 	var min = Double.MAX_VALUE
-	var refRow = 0
+	var refRow : Int? = null
 	matrix.forEachIndexed { index, row ->
 		if (row[colIndex] > 0 && row.last() / row[colIndex] < min) {
 			min = row.last() / row[colIndex]
@@ -157,7 +165,7 @@ fun SimplexTable.checkSolvingState(): SolvingState {
 	}
 
 	return when {
-		!hasSolves -> SolvingState.HAS_NO_SOLUTIONS
+//		!hasSolves -> SolvingState.HAS_NO_SOLUTIONS
 		this.matrix.last().dropLast(1).all { it >= 0 } -> SolvingState.SOLVED
 		else -> SolvingState.NOT_SOLVED
 	}

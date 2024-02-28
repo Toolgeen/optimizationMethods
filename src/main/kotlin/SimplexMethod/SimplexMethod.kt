@@ -50,28 +50,41 @@ object SimplexMethod {
 			table.switchVariables(refRow, refCol)
 
 			table.matrix[refRow].forEachIndexed { colIndex, element ->
-				table.setValue(element / refElement, refRow, colIndex)
+				if (colIndex == refCol) {
+					table.setValue(1 / refElement, refRow, colIndex)
+				} else {
+					table.setValue(element / refElement, refRow, colIndex)
+				}
 			}
 
 			table.matrix.forEachIndexed { rowIndex, row ->
 				if (rowIndex != refRow) {
 					row.forEachIndexed { colIndex, element ->
-						table.setValue(
-							value = table.getValue(rowIndex, colIndex) - (table.getValue(rowIndex, refCol) * table.getValue(refRow, colIndex)),
-							row = rowIndex,
-							col = colIndex
-						)
+						if (colIndex == refCol) {
+							table.setValue(
+								value = (element / refElement).unaryMinus(),
+								row = rowIndex,
+								col = colIndex
+							)
+						} else {
+							table.setValue(
+								value = element - (table.getValue(rowIndex, refCol) * table.getValue(refRow, colIndex)),
+								row = rowIndex,
+								col = colIndex
+							)
+						}
 					}
 				}
 			}
 			table.apply {
-				this.matrix.removeLast()
 				this.matrix.add(createCostsRow(table))
 			}
 			solvingState = table.checkSolvingState()
 			println("finished iteration $iteration")
+			table.print()
 		}
 		println("final solution")
+		println(solvingState.toString())
 		table.print()
 	}
 }
