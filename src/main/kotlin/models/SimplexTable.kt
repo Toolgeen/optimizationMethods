@@ -10,12 +10,14 @@ class SimplexTable(
 	override fun toString() = StringBuilder().apply {
 		val maxLength = maxLengthInElements()
 		val rowNames: List<String> = basisArgs.map { "x${it}" } + listOf("p")
-		val colNames = this@SimplexTable.nonBasisArgs.map {
+		val colNames = listOf("".padStart(maxLength, ' ')) + this@SimplexTable.nonBasisArgs.map {
 			"x${it}".padStart(maxLength, ' ')
 		} + "b".padStart(maxLength, ' ')
-		appendLine("[      ${colNames.joinToString(separator = "  ")}]")
-		matrix.mapIndexed { index, elem ->
-			appendLine("[${rowNames[index].padStart(maxLength, ' ')} ${elem.formatRowWithPaddings().joinToString(separator = ", ")}]")
+		appendLine("[${colNames.joinToString(separator = "  ")}]")
+		rowNames.forEachIndexed { index, rowName ->
+			val rowElements = listOf(rowName.padStart(maxLength, ' ')) + matrix[index].formatRowWithPaddings()
+			val string = "[${rowElements.joinToString(", ")}]"
+			appendLine(string)
 		}
 	}.toString()
 }
