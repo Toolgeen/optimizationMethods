@@ -5,6 +5,7 @@ import Constants.VALUE_ZERO
 import Input.Task
 import models.Matrix
 import models.SimplexTable
+import models.SolvingState
 
 fun Matrix.mapToLeastElementMethodSolve(basisArgs: List<Int>) {
 
@@ -145,12 +146,21 @@ fun SimplexTable.findRefRow(colIndex: Int): Int {
 	return refRow
 }
 
-fun SimplexTable.isSolved(): Boolean {
-	var isSolved = true
-	this.matrix.last().dropLast(1).forEach {
-		isSolved = !(it > 0)
+fun SimplexTable.checkSolvingState(): SolvingState {
+	var hasSolves = true
+	this.matrix.last().dropLast(1).forEachIndexed { colIndex, targetFunCoefficient ->
+		var isAllCoefficientsNonPositive = true
+		this.matrix.dropLast(1).forEachIndexed { rowIndex, row ->
+			isAllCoefficientsNonPositive = isAllCoefficientsNonPositive && row[colIndex] <= 0
+		}
+		hasSolves = hasSolves && !(targetFunCoefficient < 0 && isAllCoefficientsNonPositive)
 	}
-	return isSolved
+
+	return when {
+		!hasSolves -> SolvingState.HAS_NO_SOLUTIONS
+		this.matrix.last().dropLast(1).all { it >= 0 } -> SolvingState.SOLVED
+		else -> SolvingState.NOT_SOLVED
+	}
 }
 
 fun SimplexTable.switchVariables(row: Int, col: Int) {

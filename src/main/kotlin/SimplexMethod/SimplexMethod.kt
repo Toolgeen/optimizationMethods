@@ -3,6 +3,7 @@ package SimplexMethod
 import Input.Task
 import models.LeastElemMethodBasis
 import models.SimplexTable
+import models.SolvingState
 
 object SimplexMethod {
 
@@ -39,9 +40,9 @@ object SimplexMethod {
 	}
 
 	fun findSolve(table: SimplexTable) {
-		var isSolved = false
+		var solvingState = SolvingState.NOT_SOLVED
 		var iteration = 0
-		while (!isSolved) {
+		while (solvingState == SolvingState.NOT_SOLVED) {
 			iteration++
 			println("started iteration $iteration")
 			val (refRow, refCol) = table.findReferenceElementIndices()
@@ -64,11 +65,10 @@ object SimplexMethod {
 				}
 			}
 			table.apply {
-				this.matrix.dropLast(1)
+				this.matrix.removeLast()
 				this.matrix.add(createCostsRow(table))
 			}
-
-			isSolved = table.isSolved()
+			solvingState = table.checkSolvingState()
 			println("finished iteration $iteration")
 		}
 		println("final solution")
