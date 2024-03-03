@@ -1,5 +1,8 @@
 package Input
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class Task(
 	val matrix: MutableList<MutableList<Double>>,
 	val a: List<Double>,
@@ -32,9 +35,5 @@ class Task(
 	val targetFunCoefficients = matrix.flatMap {
 		it.asIterable()
 	}
-
-	val simplexTablePRow = targetFunCoefficients + 0.0
-
-	val rightPartOfRestrictionsSystem = b + a
 }
 

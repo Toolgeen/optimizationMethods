@@ -1,17 +1,20 @@
 
-import Input.Task
+import Input.InputHandler
 import Input.isSimplexMethodNeeded
 import LeastElementMethod.LeastElementMethod
 import SimplexMethod.SimplexMethod
 
 private fun main() {
 
-    val task = Task.TestData
+    InputHandler.getFile()
+    val task = InputHandler.task
 
-    val basis = LeastElementMethod(task)
+    task?.let {
+        val basis = LeastElementMethod(task)
 
-    if (isSimplexMethodNeeded()) {
-        SimplexMethod(basis, task)
+        if (isSimplexMethodNeeded()) {
+            SimplexMethod(basis, task)
+        }
     }
 }
 
