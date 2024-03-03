@@ -29,17 +29,14 @@ object SimplexMethod {
 			mapToLeastElementMethodSolve(basisArgs = basis.basisArgs)
 			println("----------")
 			print()
-			formatSimplexTable(
-				basisArgs = basis.basisArgs,
-				targetFunCoefficients = task.targetFunCoefficients
-			)
+			formatSimplexTable(basisArgs = basis.basisArgs)
 		}
 		cleanSimplexTable.print()
 
 		findSolve(cleanSimplexTable)
 	}
 
-	fun findSolve(table: SimplexTable) {
+	private fun findSolve(table: SimplexTable) {
 		var solvingState = SolvingState.NOT_SOLVED
 		var iteration = 0
 		while (solvingState == SolvingState.NOT_SOLVED) {
@@ -60,31 +57,42 @@ object SimplexMethod {
 			table.matrix.forEachIndexed { rowIndex, row ->
 				if (rowIndex != refRow) {
 					row.forEachIndexed { colIndex, element ->
-						if (colIndex == refCol) {
-							table.setValue(
-								value = (element / refElement).unaryMinus(),
-								row = rowIndex,
-								col = colIndex
-							)
-						} else {
-							table.setValue(
-								value = element - (table.getValue(rowIndex, refCol) * table.getValue(refRow, colIndex)),
-								row = rowIndex,
-								col = colIndex
-							)
+						when (colIndex) {
+							refCol -> {
+								table.setValue(
+									value = (element / refElement).unaryMinus(),
+									row = rowIndex,
+									col = colIndex
+								)
+							}
+							table.colSize - 1 -> {
+								table.setValue(
+									value = element + (table.getValue(rowIndex, refCol) * table.getValue(refRow, colIndex)),
+									row = rowIndex,
+									col = colIndex
+								)
+							}
+							else -> {
+								table.setValue(
+									value = element - (table.getValue(rowIndex, refCol) * table.getValue(refRow, colIndex)),
+									row = rowIndex,
+									col = colIndex
+								)
+							}
 						}
 					}
 				}
 			}
-			table.apply {
-				this.matrix.add(createCostsRow(table))
-			}
 			solvingState = table.checkSolvingState()
-			println("finished iteration $iteration")
 			table.print()
+			println("finished iteration $iteration\n\n")
 		}
-		println("final solution")
-		println(solvingState.toString())
+		println(
+			StringBuilder().apply {
+				appendLine(solvingState.toString())
+				appendLine("final solution")
+			}.toString()
+		)
 		table.print()
 	}
 }

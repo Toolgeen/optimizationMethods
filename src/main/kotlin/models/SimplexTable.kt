@@ -4,7 +4,6 @@ class SimplexTable(
 	matrix: MutableList<MutableList<Double>>,
 	val basisArgs: MutableList<Int>,
 	val nonBasisArgs: MutableList<Int>,
-	val targetFunCoefficients: List<Double>
 ) : Matrix(matrix) {
 
 	override fun toString() = StringBuilder().apply {

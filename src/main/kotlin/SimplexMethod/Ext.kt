@@ -14,7 +14,7 @@ fun Matrix.mapToLeastElementMethodSolve(basisArgs: List<Int>) {
 		var minimumRightElement = Double.MAX_VALUE
 		var minIndex = 0
 
-		this.matrix.forEachIndexed { rowIndex, _ ->
+		this.matrix.dropLast(1).forEachIndexed { rowIndex, _ ->
 			if (this.getValue(rowIndex, colIndex) > 0.0 && this.getValue(rowIndex, this.colSize - 1) * this.getValue(rowIndex, colIndex) < minimumRightElement) {
 				minimumRightElement = this.getValue(rowIndex, this.colSize - 1)  * this.getValue(rowIndex, colIndex)
 				minIndex = rowIndex
@@ -44,52 +44,28 @@ fun Matrix.mapToLeastElementMethodSolve(basisArgs: List<Int>) {
 	}
 }
 
-fun Matrix.formatSimplexTable(basisArgs: List<Int>, targetFunCoefficients: List<Double>): SimplexTable {
+fun Matrix.formatSimplexTable(basisArgs: List<Int>): SimplexTable {
 	val cleanedZeroRowMatrix = this.matrix.filter { !it.none { it != 0.0 } }
 	val newMatrix = mutableListOf<MutableList<Double>>()
 	basisArgs.forEach { basisArgIndex ->
 		val cleanedRow = cleanedZeroRowMatrix
 			.first { it[basisArgIndex] == 1.0 }
 			.filterIndexed { index, d -> index !in basisArgs }
-		val basisRow = cleanedRow.mapIndexed { index, element ->
-			if (index != cleanedRow.lastIndex) element.unaryMinus() else element
-		}.toMutableList()
-		newMatrix.add(basisRow)
+		newMatrix.add(cleanedRow.toMutableList())
 	}
-	newMatrix.add(createCostsRow(basisArgs, targetFunCoefficients, newMatrix))
+	newMatrix.add(
+		matrix.last()
+			.filterIndexed { index, element ->
+				index !in basisArgs
+			}
+			.toMutableList()
+	)
 
 	return SimplexTable(
 		matrix = newMatrix,
 		basisArgs = basisArgs.toMutableList(),
 		nonBasisArgs = this.colIndices.filter { !basisArgs.contains(it) }.dropLast(1).toMutableList(),
-		targetFunCoefficients = targetFunCoefficients
 	)
-}
-
-fun createCostsRow(simplexTable: SimplexTable) = createCostsRow(
-	basisArgs = simplexTable.basisArgs,
-	targetFunCoefficients = simplexTable.targetFunCoefficients,
-	matrix = simplexTable.matrix
-)
-
-fun createCostsRow(
-	basisArgs: List<Int>,
-	targetFunCoefficients: List<Double>,
-	matrix: MutableList<MutableList<Double>>
-) : MutableList<Double> {
-	var currentCost = 0.0
-	basisArgs.forEachIndexed { index, element ->
-		val transferCost = targetFunCoefficients[element]
-		val transferValue = matrix[index].last()
-		currentCost += transferCost * transferValue
-	}
-	return targetFunCoefficients
-		.filterIndexed { index, element ->
-			index !in basisArgs
-		}.map {
-			it.unaryMinus()
-		}.plus(currentCost)
-		.toMutableList()
 }
 
 fun createRestrictionsSystem(task: Task): Matrix {
@@ -121,6 +97,7 @@ fun createRestrictionsSystem(task: Task): Matrix {
 				counter++
 			}
 		}
+		add(task.targetFunCoefficients.plus(0.0).toMutableList())
 	}
 	)
 }
@@ -128,9 +105,9 @@ fun createRestrictionsSystem(task: Task): Matrix {
 fun SimplexTable.findReferenceElementIndices(): Pair<Int, Int> {
 	var col = 0
 	var row: Int? = null
-	var currentTargetFunCoefficient = Double.MAX_VALUE
+	var currentTargetFunCoefficient = 0.0
 	this.matrix.last().dropLast(1).forEachIndexed { colIndex, targetFunCoefficient ->
-		if (targetFunCoefficient <= currentTargetFunCoefficient && targetFunCoefficient < 0) {
+		if (targetFunCoefficient < currentTargetFunCoefficient) {
 			currentTargetFunCoefficient = targetFunCoefficient
 			row = findRefRow(colIndex)
 			if (row != null) col = colIndex
@@ -138,9 +115,6 @@ fun SimplexTable.findReferenceElementIndices(): Pair<Int, Int> {
 	}
 	return (row ?: 0) to col
 }
-
-
-fun SimplexTable.findRefCol(): Int = matrix.last().indexOf(matrix.last().dropLast(1).minOrNull())
 
 fun SimplexTable.findRefRow(colIndex: Int): Int? {
 	var min = Double.MAX_VALUE
@@ -165,7 +139,7 @@ fun SimplexTable.checkSolvingState(): SolvingState {
 	}
 
 	return when {
-//		!hasSolves -> SolvingState.HAS_NO_SOLUTIONS
+		!hasSolves -> SolvingState.HAS_NO_SOLUTIONS
 		this.matrix.last().dropLast(1).all { it >= 0 } -> SolvingState.SOLVED
 		else -> SolvingState.NOT_SOLVED
 	}
