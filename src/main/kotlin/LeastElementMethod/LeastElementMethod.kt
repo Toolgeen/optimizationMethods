@@ -82,6 +82,7 @@ object LeastElementMethod {
 
 		basis.print()
 		println("Решено за $iterations итераций.")
+		println("Значение ЦФ = ${basis.countFunction(task.initialPriceMatrix)}.")
 		println("ПОИСК БАЗИСА МЕТОДОМ НАИМЕНЬШЕЙ СТОИМОСТИ ЗАКОНЧЕН")
 		return basis
 	}

@@ -4,6 +4,7 @@ import Input.Task
 import models.LeastElemMethodBasis
 import models.SimplexTable
 import models.SolvingState
+import kotlin.math.absoluteValue
 
 object SimplexMethod {
 
@@ -94,5 +95,6 @@ object SimplexMethod {
 			}.toString()
 		)
 		table.print()
+		println("Значение ЦФ = ${table.matrix.last().last().absoluteValue}.")
 	}
 }

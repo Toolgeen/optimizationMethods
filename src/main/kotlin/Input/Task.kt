@@ -11,6 +11,10 @@ class Task(
 	val rows = matrix.size
 	val cols = matrix[0].size
 
+	val initialPriceMatrix = matrix.map {
+		it.toList()
+	}
+
 	companion object {
 		val TestData = Task(
 			matrix = mutableListOf(

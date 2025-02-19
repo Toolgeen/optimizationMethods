@@ -1,5 +1,7 @@
 package models
 
+import java.util.concurrent.atomic.AtomicReference
+
 class LeastElemMethodBasis(
 	private val rows: Int,
 	private val cols: Int
@@ -20,5 +22,15 @@ class LeastElemMethodBasis(
 			}
 		}
 		return args
+	}
+
+	fun countFunction(priceMatrix: List<List<Double>>) : Double {
+		var finalPrice = 0.0
+		this.matrix.forEachIndexed { row, rowValues ->
+			rowValues.forEachIndexed { col, value ->
+				finalPrice += value * priceMatrix[row][col]
+			}
+		}
+		return finalPrice
 	}
 }
